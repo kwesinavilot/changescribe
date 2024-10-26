@@ -5,45 +5,55 @@ All notable changes to the "Literate" extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2023-12-17
+## [Unreleased]
 
 ### Added
-
 - Support for Azure OpenAI as an alternative LLM provider
-- New user settings for selecting LLM provider and configuring Azure OpenAI
-- Created `azureOpenai.ts` service for Azure OpenAI integration
+- New user settings for configuring Azure OpenAI:
+  - API Key
+  - Endpoint
+  - Deployment Name
+  - API Version
+  - Model
+- Command to update LLM provider and toggle setting visibility
+- Pagination support for large repositories with many commits
 
 ### Changed
+- Refactored codebase into separate service modules for better organization:
+  - `openai.ts`
+  - `git.ts`
+  - `changelog.ts`
+  - `webview.ts`
+  - `azureOpenai.ts`
+- Updated Azure OpenAI SDK to version 2.0.0-beta.2
+- Improved error handling for Git operations and OpenAI/Azure OpenAI API calls
+- Enhanced user interface with more customization options
 
-- Modified `openai.ts` to support multiple LLM providers
-- Updated `extension.ts` to use the new multi-provider LLM initialization
+### Fixed
+- Resolved issue with missing API version in Azure OpenAI client initialization
+- Fixed toggling visibility of LLM-specific settings in VS Code
+
+### Security
+- Improved handling of API keys for both OpenAI and Azure OpenAI
 
 ## [0.2.0] - 2023-12-16
 
 ### Added
-
 - Separated logic into service modules for better organization and maintainability
-- Created `openai.ts` for OpenAI API related functions
-- Created `git.ts` for Git-related operations
-- Created `changelog.ts` for generating the changelog
-- Created `webview.ts` for managing the webview
 - Implemented error handling for Git operations and OpenAI API calls
 - Added user settings to customize the changelog format and OpenAI API key
 
 ### Changed
-
 - Refactored `extension.ts` to use the new service modules
 - Updated `package.json` to include new dependencies and scripts
 - Modified `tsconfig.json` to include the new `services` folder in compilation
 
 ### Security
-
 - Improved security by moving OpenAI API key handling to a dedicated service
 
 ## [0.1.0] - 2023-12-15
 
 ### Added
-
 - Initial release of Literate extension
 - Automatic changelog generation from Git commit history
 - AI-powered commit description generation using OpenAI API
@@ -55,5 +65,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic error handling and input validation
 
 ### Security
-
 - Implemented secure storage of OpenAI API key in user settings

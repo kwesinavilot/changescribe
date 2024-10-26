@@ -39,6 +39,17 @@ function activate(context) {
         }
     }));
     context.subscriptions.push(disposable);
+    const updateLLMProviderCommand = vscode.commands.registerCommand('literate.updateLLMProvider', () => __awaiter(this, void 0, void 0, function* () {
+        const config = vscode.workspace.getConfiguration('literate');
+        const llmProvider = config.get('llmProvider');
+        // Update setting visibility
+        yield vscode.commands.executeCommand('setContext', 'literate.isOpenAI', llmProvider === 'openai');
+        yield vscode.commands.executeCommand('setContext', 'literate.isAzureOpenAI', llmProvider === 'azureopenai');
+        vscode.window.showInformationMessage(`LLM provider updated to ${llmProvider}`);
+    }));
+    context.subscriptions.push(updateLLMProviderCommand);
+    // Run the command once on activation to set initial visibility
+    vscode.commands.executeCommand('literate.updateLLMProvider');
 }
 function generateAndDisplayChangelog(panel) {
     return __awaiter(this, void 0, void 0, function* () {

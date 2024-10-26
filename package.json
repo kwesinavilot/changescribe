@@ -2,7 +2,7 @@
     "name": "literate",
     "displayName": "Literate",
     "description": "Automate semantic change log generation",
-    "version": "0.1.0",
+    "version": "0.3.0",
     "engines": {
         "vscode": "^1.85.0"
     },
@@ -18,14 +18,35 @@
             {
                 "command": "literate.generateChangelog",
                 "title": "Literate: Generate Changelog"
+            },
+            {
+                "command": "literate.updateLLMProvider",
+                "title": "Literate: LLM Provider"
             }
         ],
         "configuration": {
             "title": "Literate",
             "properties": {
+                "literate.changelogFormat": {
+                    "type": "string",
+                    "default": "conventional",
+                    "enum": [
+                        "conventional",
+                        "keepachangelog"
+                    ],
+                    "description": "Format of the generated changelog"
+                },
+                "literate.maxCommits": {
+                    "type": "number",
+                    "default": 50,
+                    "description": "Maximum number of commits to include in the changelog"
+                },
                 "literate.llmProvider": {
                     "type": "string",
-                    "enum": ["openai", "azureopenai"],
+                    "enum": [
+                        "openai",
+                        "azureopenai"
+                    ],
                     "default": "openai",
                     "description": "Select the LLM provider for generating changelog descriptions"
                 },
@@ -33,6 +54,11 @@
                     "type": "string",
                     "default": "",
                     "description": "OpenAI API Key for generating changelog descriptions"
+                },
+                "literate.openaiModel": {
+                    "type": "string",
+                    "default": "gpt-3.5-turbo",
+                    "description": "OpenAI Model for generating changelog descriptions"
                 },
                 "literate.azureOpenaiApiKey": {
                     "type": "string",
@@ -49,22 +75,26 @@
                     "default": "",
                     "description": "Azure OpenAI Deployment Name"
                 },
-                "literate.changelogFormat": {
+                "literate.azureOpenaiModel": {
                     "type": "string",
-                    "default": "conventional",
-                    "enum": [
-                        "conventional",
-                        "keepachangelog"
-                    ],
-                    "description": "Format of the generated changelog"
+                    "default": "gpt-3.5-turbo",
+                    "description": "Azure OpenAI Model for generating changelog descriptions"
                 },
-                "literate.maxCommits": {
-                    "type": "number",
-                    "default": 50,
-                    "description": "Maximum number of commits to include in the changelog"
+                "literate.azureOpenaiApiVersion": {
+                    "type": "string",
+                    "default": "2023-05-15",
+                    "description": "Azure OpenAI API Version"
                 }
             }
         }
+    },
+    "menus": {
+        "commandPalette": [
+            {
+                "command": "literate.updateLLMProvider",
+                "when": "config.literate.llmProvider != ''"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
@@ -87,10 +117,10 @@
         "typescript": "^5.3.3"
     },
     "dependencies": {
+        "@azure/openai": "2.0.0-beta.2",
         "minimatch": "^10.0.1",
-        "openai": "^4.0.0",
-        "simple-git": "^3.22.0",
-        "@azure/openai": "^1.0.0-beta.5"
+        "openai": "^4.68.4",
+        "simple-git": "^3.22.0"
     },
     "overrides": {
         "minimatch": "^10.0.1"
