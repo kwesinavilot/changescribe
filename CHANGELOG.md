@@ -5,8 +5,15 @@ All notable changes to the "Literate" extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2024-10-26
+### Added
 
+### Changed
+- Provide a more specific error message when the Azure OpenAI deployment is not found.
+- Improved error handling for Azure OpenAI deployment issues
+- Enhanced error display in the changelog webview instead of console logging
+
+## [0.3.0] - 2024-10-26
 ### Added
 - Support for Azure OpenAI as an alternative LLM provider
 - New user settings for configuring Azure OpenAI:
@@ -14,24 +21,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Endpoint
   - Deployment Name
   - API Version
-  - Model
 - Command to update LLM provider and toggle setting visibility
 - Pagination support for large repositories with many commits
+- Real-time streaming of changelog generation progress
+- Loading indicator during changelog generation
+- Improved UI controls for saving and committing changelog
 
 ### Changed
 - Refactored codebase into separate service modules for better organization:
   - `openai.ts`
   - `git.ts`
-  - `changelog.ts`
   - `webview.ts`
   - `azureOpenai.ts`
 - Updated Azure OpenAI SDK to version 2.0.0-beta.2
 - Improved error handling for Git operations and OpenAI/Azure OpenAI API calls
 - Enhanced user interface with more customization options
+- Save and commit buttons are now enabled only when appropriate
+- Consolidated webview-related functionality into a single `webview.ts` file
 
 ### Fixed
 - Resolved issue with missing API version in Azure OpenAI client initialization
 - Fixed toggling visibility of LLM-specific settings in VS Code
+- Corrected linter errors in `extension.ts`
+- Improved error handling for Azure OpenAI deployment issues
+- Enhanced error display in the changelog webview
 
 ### Security
 - Improved handling of API keys for both OpenAI and Azure OpenAI

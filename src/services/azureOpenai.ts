@@ -8,7 +8,7 @@ export async function initializeAzureOpenAI() {
     const apiKey = config.get<string>('azureOpenaiApiKey');
     const endpoint = config.get<string>('azureOpenaiEndpoint');
     const deployment = config.get<string>('azureOpenaiDeploymentName');
-    const apiVersion = config.get<string>('azureOpenaiApiVersion') || '2023-05-15'; // Default to a recent version if not set
+    const apiVersion = config.get<string>('azureOpenaiApiVersion') || '2023-05-15';
 
     if (!apiKey || !endpoint || !deployment) {
         throw new Error('Azure OpenAI API key, endpoint, or deployment name is not set. Please set them in the extension settings.');
@@ -51,6 +51,11 @@ export async function getAzureAIGeneratedDescription(commitMessage: string): Pro
         return response.choices[0].message?.content || 'No description generated.';
     } catch (error) {
         console.error('Error generating AI description:', error);
-        return 'Error generating description.';
+
+        if (error instanceof Error && error.message.includes('API deployment for this resource does not exist')) {
+            return `Error: Azure OpenAI deployment not found. Please check your deployment configuration.`;
+        }
+
+        return `Error generating description: ${error instanceof Error ? error.message : String(error)}`;
     }
 }

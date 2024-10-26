@@ -14,22 +14,25 @@ exports.deactivate = deactivate;
 const vscode = require("vscode");
 const openai_1 = require("./services/openai");
 const git_1 = require("./services/git");
-const changelog_1 = require("./services/changelog");
 const webview_1 = require("./services/webview");
 function activate(context) {
     console.log('Literate extension is now active!');
-    const disposable = vscode.commands.registerCommand('literate.generateChangelog', () => __awaiter(this, void 0, void 0, function* () {
+    let disposable = vscode.commands.registerCommand('literate.generateChangelog', () => __awaiter(this, void 0, void 0, function* () {
         try {
             yield (0, openai_1.initializeLLM)();
             const webviewPanel = (0, webview_1.createWebviewPanel)(context);
-            yield generateAndDisplayChangelog(webviewPanel);
             webviewPanel.webview.onDidReceiveMessage((message) => __awaiter(this, void 0, void 0, function* () {
                 switch (message.type) {
+                    case 'webviewReady':
+                        yield generateAndStreamChangelog(webviewPanel);
+                        break;
                     case 'save':
                         yield (0, webview_1.saveChangelog)(message.content);
+                        webviewPanel.webview.postMessage({ type: 'changelogSaved' });
                         break;
                     case 'commit':
-                        yield (0, git_1.commitChangelog)(message.content);
+                        yield (0, git_1.commitChangelog)(message.content); // Pass the content to commitChangelog
+                        vscode.window.showInformationMessage('Changelog committed successfully!');
                         break;
                 }
             }), undefined, context.subscriptions);
@@ -51,19 +54,41 @@ function activate(context) {
     // Run the command once on activation to set initial visibility
     vscode.commands.executeCommand('literate.updateLLMProvider');
 }
-function generateAndDisplayChangelog(panel) {
+function generateAndStreamChangelog(panel) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const config = vscode.workspace.getConfiguration('literate');
             const maxCommits = config.get('maxCommits') || 50;
             const logResult = yield (0, git_1.getGitLog)(maxCommits);
-            const changelog = yield (0, changelog_1.generateChangelog)(logResult);
-            panel.webview.postMessage({ type: 'updateChangelog', content: changelog });
+            for (const commit of logResult.all) {
+                const changeType = getChangeType(commit.message);
+                const aiGeneratedDescription = yield (0, openai_1.getAIGeneratedDescription)(commit.message);
+                const changelogEntry = `## ${commit.date}: ${changeType}\n\n${aiGeneratedDescription}\n\nCommit: ${commit.hash}\nAuthor: ${commit.author_name} <${commit.author_email}>\n\n`;
+                panel.webview.postMessage({ type: 'updateChangelog', content: changelogEntry });
+            }
+            panel.webview.postMessage({ type: 'generationComplete' });
         }
         catch (error) {
             throw new Error(`Error generating changelog: ${error instanceof Error ? error.message : String(error)}`);
         }
     });
+}
+function getChangeType(commitMessage) {
+    if (commitMessage.startsWith('feat:'))
+        return 'Feature';
+    if (commitMessage.startsWith('fix:'))
+        return 'Bug Fix';
+    if (commitMessage.startsWith('docs:'))
+        return 'Documentation';
+    if (commitMessage.startsWith('style:'))
+        return 'Style';
+    if (commitMessage.startsWith('refactor:'))
+        return 'Refactor';
+    if (commitMessage.startsWith('test:'))
+        return 'Test';
+    if (commitMessage.startsWith('chore:'))
+        return 'Chore';
+    return 'Other';
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map

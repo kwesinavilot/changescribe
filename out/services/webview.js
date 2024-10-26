@@ -14,7 +14,6 @@ exports.getWebviewContent = getWebviewContent;
 exports.saveChangelog = saveChangelog;
 const vscode = require("vscode");
 const path = require("path");
-const fs = require("fs/promises");
 function createWebviewPanel(context) {
     const panel = vscode.window.createWebviewPanel('literateChangelog', 'Literate Changelog', vscode.ViewColumn.One, {
         enableScripts: true,
@@ -35,12 +34,15 @@ function getWebviewContent() {
                 body { font-family: Arial, sans-serif; padding: 20px; }
                 #changelog { white-space: pre-wrap; }
                 #controls { margin-bottom: 20px; }
+                #saveButton, #commitButton { display: none; }
+                #loadingIndicator { display: none; }
             </style>
         </head>
         <body>
             <div id="controls">
-                <button id="saveButton">Save Changelog</button>
-                <button id="commitButton">Commit Changelog</button>
+                <button id="saveButton" disabled>Save Changelog</button>
+                <button id="commitButton" disabled>Commit Changelog</button>
+                <div id="loadingIndicator">Generating changelog...</div>
             </div>
             <div id="changelog"></div>
             <script>
@@ -48,12 +50,25 @@ function getWebviewContent() {
                 const changelogElement = document.getElementById('changelog');
                 const saveButton = document.getElementById('saveButton');
                 const commitButton = document.getElementById('commitButton');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+
+                let changelogSaved = false;
 
                 window.addEventListener('message', event => {
                     const message = event.data;
                     switch (message.type) {
                         case 'updateChangelog':
-                            changelogElement.textContent = message.content;
+                            changelogElement.textContent += message.content;
+                            break;
+                        case 'generationComplete':
+                            loadingIndicator.style.display = 'none';
+                            saveButton.style.display = 'inline-block';
+                            saveButton.disabled = false;
+                            break;
+                        case 'changelogSaved':
+                            changelogSaved = true;
+                            commitButton.style.display = 'inline-block';
+                            commitButton.disabled = false;
                             break;
                     }
                 });
@@ -63,8 +78,13 @@ function getWebviewContent() {
                 });
 
                 commitButton.addEventListener('click', () => {
-                    vscode.postMessage({ type: 'commit', content: changelogElement.textContent });
+                    if (changelogSaved) {
+                        vscode.postMessage({ type: 'commit' });
+                    }
                 });
+
+                // Show loading indicator when the webview is ready
+                vscode.postMessage({ type: 'webviewReady' });
             </script>
         </body>
         </html>
@@ -79,7 +99,7 @@ function saveChangelog(content) {
         const rootPath = workspaceFolders[0].uri.fsPath;
         const changelogPath = path.join(rootPath, 'CHANGELOG.md');
         try {
-            yield fs.writeFile(changelogPath, content, 'utf8');
+            yield vscode.workspace.fs.writeFile(vscode.Uri.file(changelogPath), Buffer.from(content, 'utf8'));
             vscode.window.showInformationMessage('Changelog saved successfully!');
         }
         catch (error) {

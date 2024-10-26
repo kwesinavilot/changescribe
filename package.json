@@ -2,7 +2,7 @@
     "name": "literate",
     "displayName": "Literate",
     "description": "Automate semantic change log generation",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "engines": {
         "vscode": "^1.85.0"
     },

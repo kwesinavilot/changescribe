@@ -1,26 +1,29 @@
 import * as vscode from 'vscode';
-import { initializeLLM } from './services/openai';
+import { initializeLLM, getAIGeneratedDescription } from './services/openai';
 import { getGitLog, commitChangelog } from './services/git';
-import { generateChangelog } from './services/changelog';
 import { createWebviewPanel, saveChangelog } from './services/webview';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Literate extension is now active!');
 
-    const disposable = vscode.commands.registerCommand('literate.generateChangelog', async () => {
+    let disposable = vscode.commands.registerCommand('literate.generateChangelog', async () => {
         try {
             await initializeLLM();
             const webviewPanel = createWebviewPanel(context);
-            await generateAndDisplayChangelog(webviewPanel);
-
+            
             webviewPanel.webview.onDidReceiveMessage(
                 async message => {
                     switch (message.type) {
+                        case 'webviewReady':
+                            await generateAndStreamChangelog(webviewPanel);
+                            break;
                         case 'save':
                             await saveChangelog(message.content);
+                            webviewPanel.webview.postMessage({ type: 'changelogSaved' });
                             break;
                         case 'commit':
                             await commitChangelog(message.content);
+                            vscode.window.showInformationMessage('Changelog committed successfully!');
                             break;
                     }
                 },
@@ -51,18 +54,41 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('literate.updateLLMProvider');
 }
 
-async function generateAndDisplayChangelog(panel: vscode.WebviewPanel) {
+async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
     try {
         const config = vscode.workspace.getConfiguration('literate');
         const maxCommits = config.get<number>('maxCommits') || 50;
 
         const logResult = await getGitLog(maxCommits);
-        const changelog = await generateChangelog(logResult);
+        
+        for (const commit of logResult.all) {
+            const changeType = getChangeType(commit.message);
+            const aiGeneratedDescription = await getAIGeneratedDescription(commit.message);
 
-        panel.webview.postMessage({ type: 'updateChangelog', content: changelog });
+            const changelogEntry = `## ${commit.date}: ${changeType}\n\n${aiGeneratedDescription}\n\nCommit: ${commit.hash}\nAuthor: ${commit.author_name} <${commit.author_email}>\n\n`;
+            
+            panel.webview.postMessage({ type: 'updateChangelog', content: changelogEntry });
+        }
+
+        panel.webview.postMessage({ type: 'generationComplete' });
     } catch (error) {
-        throw new Error(`Error generating changelog: ${error instanceof Error ? error.message : String(error)}`);
+        panel.webview.postMessage({ 
+            type: 'updateChangelog', 
+            content: `Error generating changelog: ${error instanceof Error ? error.message : String(error)}\n\n` 
+        });
+        panel.webview.postMessage({ type: 'generationComplete' });
     }
+}
+
+function getChangeType(commitMessage: string): string {
+    if (commitMessage.startsWith('feat:')) return 'Feature';
+    if (commitMessage.startsWith('fix:')) return 'Bug Fix';
+    if (commitMessage.startsWith('docs:')) return 'Documentation';
+    if (commitMessage.startsWith('style:')) return 'Style';
+    if (commitMessage.startsWith('refactor:')) return 'Refactor';
+    if (commitMessage.startsWith('test:')) return 'Test';
+    if (commitMessage.startsWith('chore:')) return 'Chore';
+    return 'Other';
 }
 
 export function deactivate() {}
