@@ -5,6 +5,28 @@ All notable changes to the "Literate" extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2023-12-16
+
+### Added
+
+- Separated logic into service modules for better organization and maintainability
+- Created `openai.ts` for OpenAI API related functions
+- Created `git.ts` for Git-related operations
+- Created `changelog.ts` for generating the changelog
+- Created `webview.ts` for managing the webview
+- Implemented error handling for Git operations and OpenAI API calls
+- Added user settings to customize the changelog format and OpenAI API key
+
+### Changed
+
+- Refactored `extension.ts` to use the new service modules
+- Updated `package.json` to include new dependencies and scripts
+- Modified `tsconfig.json` to include the new `services` folder in compilation
+
+### Security
+
+- Improved security by moving OpenAI API key handling to a dedicated service
+
 ## [0.1.0] - 2023-12-15
 
 ### Added
@@ -18,22 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ability to commit changelog directly to the repository
 - User settings for OpenAI API key, changelog format, and maximum number of commits
 - Basic error handling and input validation
-
-### Changed
-
-- N/A
-
-### Deprecated
-
-- N/A
-
-### Removed
-
-- N/A
-
-### Fixed
-
-- N/A
 
 ### Security
 
