@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs/promises';
 
 export function createWebviewPanel(context: vscode.ExtensionContext): vscode.WebviewPanel {
     const panel = vscode.window.createWebviewPanel(
-        'literateChangelog',
-        'Literate Changelog',
+        'changeScribeChangelog',
+        'Change Scribe Changelog',
         vscode.ViewColumn.One,
         {
             enableScripts: true,
@@ -23,7 +24,7 @@ export function getWebviewContent() {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Literate Changelog</title>
+            <title>Change Scribe Changelog</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; }
                 #changelog { white-space: pre-wrap; }
@@ -52,7 +53,7 @@ export function getWebviewContent() {
                     const message = event.data;
                     switch (message.type) {
                         case 'updateChangelog':
-                            changelogElement.textContent += message.content;
+                            changelogElement.textContent = message.content;
                             break;
                         case 'generationComplete':
                             loadingIndicator.style.display = 'none';
@@ -95,7 +96,7 @@ export async function saveChangelog(content: string) {
     const changelogPath = path.join(rootPath, 'CHANGELOG.md');
 
     try {
-        await vscode.workspace.fs.writeFile(vscode.Uri.file(changelogPath), Buffer.from(content, 'utf8'));
+        await fs.writeFile(changelogPath, content, 'utf8');
         vscode.window.showInformationMessage('Changelog saved successfully!');
     } catch (error) {
         vscode.window.showErrorMessage(`Error saving changelog: ${error instanceof Error ? error.message : String(error)}`);

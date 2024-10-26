@@ -14,8 +14,9 @@ exports.getWebviewContent = getWebviewContent;
 exports.saveChangelog = saveChangelog;
 const vscode = require("vscode");
 const path = require("path");
+const fs = require("fs/promises");
 function createWebviewPanel(context) {
-    const panel = vscode.window.createWebviewPanel('literateChangelog', 'Literate Changelog', vscode.ViewColumn.One, {
+    const panel = vscode.window.createWebviewPanel('changeScribeChangelog', 'Change Scribe Changelog', vscode.ViewColumn.One, {
         enableScripts: true,
         localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))]
     });
@@ -29,7 +30,7 @@ function getWebviewContent() {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Literate Changelog</title>
+            <title>Change Scribe Changelog</title>
             <style>
                 body { font-family: Arial, sans-serif; padding: 20px; }
                 #changelog { white-space: pre-wrap; }
@@ -58,7 +59,7 @@ function getWebviewContent() {
                     const message = event.data;
                     switch (message.type) {
                         case 'updateChangelog':
-                            changelogElement.textContent += message.content;
+                            changelogElement.textContent = message.content;
                             break;
                         case 'generationComplete':
                             loadingIndicator.style.display = 'none';
@@ -99,7 +100,7 @@ function saveChangelog(content) {
         const rootPath = workspaceFolders[0].uri.fsPath;
         const changelogPath = path.join(rootPath, 'CHANGELOG.md');
         try {
-            yield vscode.workspace.fs.writeFile(vscode.Uri.file(changelogPath), Buffer.from(content, 'utf8'));
+            yield fs.writeFile(changelogPath, content, 'utf8');
             vscode.window.showInformationMessage('Changelog saved successfully!');
         }
         catch (error) {

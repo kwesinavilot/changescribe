@@ -14,16 +14,16 @@ const vscode = require("vscode");
 suite('Extension Test Suite', () => {
     vscode.window.showInformationMessage('Start all tests.');
     test('Extension should be present', () => {
-        assert.ok(vscode.extensions.getExtension('YourPublisherName.literate'));
+        assert.ok(vscode.extensions.getExtension('kwesinavilot.changescribe'));
     });
     test('Should activate extension', () => __awaiter(void 0, void 0, void 0, function* () {
-        const ext = vscode.extensions.getExtension('YourPublisherName.literate');
+        const ext = vscode.extensions.getExtension('kwesinavilot.changescribe');
         yield (ext === null || ext === void 0 ? void 0 : ext.activate());
         assert.ok(ext === null || ext === void 0 ? void 0 : ext.isActive);
     }));
     test('Should register generate changelog command', () => {
         return vscode.commands.getCommands(true).then((commands) => {
-            assert.ok(commands.includes('literate.generateChangelog'));
+            assert.ok(commands.includes('changeScribe.generateChangelog'));
         });
     });
 });

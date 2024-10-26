@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import { getAIGeneratedDescription } from './openai';
 
 export async function generateChangelog(logResult: LogResult): Promise<string> {
-    const config = vscode.workspace.getConfiguration('literate');
+    const config = vscode.workspace.getConfiguration('changeScribe');
     const changelogFormat = config.get<string>('changelogFormat') || 'conventional';
 
     let changelog = '# Changelog\n\n';

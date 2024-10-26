@@ -1,9 +1,41 @@
 # Changelog
 
-All notable changes to the "Literate" extension will be documented in this file.
+All notable changes to the "Change Scribe" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.6.0] - 2024-10-26
+
+### Changed
+- Renamed extension from "Literate" to "Change Scribe"
+- Updated all relevant files and code to reflect the new name
+- Fixed command registration to use 'changeScribe.generateChangelog'
+- Refactored Azure OpenAI client initialization in `azureOpenai.ts`
+- Updated Azure OpenAI model selection to use a configurable setting
+
+### Added
+- New configuration option `changeScribe.azureOpenAIModel` for specifying the Azure OpenAI model
+
+### Fixed
+- Resolved issue with command 'changeScribe.generateChangelog' not being found
+- Improved error handling for Azure OpenAI configuration and initialization
+
+## [0.5.0] - 2024-10-26
+
+### Added
+- New changelog generation format following Keep a Changelog structure
+- Ability to append new changes to existing changelog file
+- Grouping of changes by type (Added, Changed, Deprecated, etc.)
+- Inclusion of commit hashes in changelog entries
+
+### Changed
+- Updated changelog generation process to maintain existing content
+- Improved parsing of commit messages to determine change types
+- Enhanced error handling and display in the changelog webview
+
+### Fixed
+- Issue with overwriting existing changelog content
 
 ## [0.4.0] - 2024-10-26
 ### Added
@@ -67,7 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2023-12-15
 
 ### Added
-- Initial release of Literate extension
+- Initial release of Change Scribe extension
 - Automatic changelog generation from Git commit history
 - AI-powered commit description generation using OpenAI API
 - Interactive webview UI for displaying and customizing changelogs

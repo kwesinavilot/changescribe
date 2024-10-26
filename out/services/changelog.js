@@ -15,7 +15,7 @@ const vscode = require("vscode");
 const openai_1 = require("./openai");
 function generateChangelog(logResult) {
     return __awaiter(this, void 0, void 0, function* () {
-        const config = vscode.workspace.getConfiguration('literate');
+        const config = vscode.workspace.getConfiguration('changeScribe');
         const changelogFormat = config.get('changelogFormat') || 'conventional';
         let changelog = '# Changelog\n\n';
         for (const commit of logResult.all) {

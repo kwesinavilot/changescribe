@@ -4,14 +4,24 @@ import * as vscode from 'vscode';
 let client: AzureOpenAI;
 
 export async function initializeAzureOpenAI() {
-    const config = vscode.workspace.getConfiguration('literate');
+    const config = vscode.workspace.getConfiguration('changeScribe');
     const apiKey = config.get<string>('azureOpenaiApiKey');
     const endpoint = config.get<string>('azureOpenaiEndpoint');
     const deployment = config.get<string>('azureOpenaiDeploymentName');
-    const apiVersion = config.get<string>('azureOpenaiApiVersion') || '2023-05-15';
+    const apiVersion = config.get<string>('azureOpenaiApiVersion');
 
-    if (!apiKey || !endpoint || !deployment) {
-        throw new Error('Azure OpenAI API key, endpoint, or deployment name is not set. Please set them in the extension settings.');
+    if (!apiKey) {
+        throw new Error('Azure OpenAI API key is not set. Please set it in the extension settings (changeScribe.azureOpenaiApiKey).');
+    }
+    if (!endpoint) {
+        throw new Error('Azure OpenAI endpoint is not set. Please set it in the extension settings (changeScribe.azureOpenaiEndpoint).');
+    }
+    if (!deployment) {
+        throw new Error('Azure OpenAI deployment name is not set. Please set it in the extension settings (changeScribe.azureOpenaiDeploymentName).');
+    }
+
+    if (!apiVersion) {
+        throw new Error('Azure OpenAI API version is not set. Please set it in the extension settings (changeScribe.azureOpenaiApiVersion).');
     }
 
     client = new AzureOpenAI({
@@ -28,17 +38,17 @@ export async function getAzureAIGeneratedDescription(commitMessage: string): Pro
             throw new Error('Azure OpenAI client is not initialized. Please initialize it first.');
         }
 
-        const config = vscode.workspace.getConfiguration('literate');
-        const aoaiModel = config.get<string>('azureOpenaiModel');
+        const config = vscode.workspace.getConfiguration('changeScribe');
+        const azureOpenAIModel = config.get<string>('azureOpenaiModel');
 
         // Ensure the model is set in the configuration
-        if (!aoaiModel) {
+        if (!azureOpenAIModel) {
             throw new Error('Azure OpenAI model is not set in the configuration. Please set it in the extension settings.');
         }
 
         const response = await client.chat.completions.create(
             {
-                model: aoaiModel,
+                model: azureOpenAIModel,
                 messages: [
                     { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
                     { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }

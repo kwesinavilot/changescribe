@@ -12,12 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = require("vscode");
+const fs = require("fs/promises");
+const path = require("path");
 const openai_1 = require("./services/openai");
 const git_1 = require("./services/git");
 const webview_1 = require("./services/webview");
 function activate(context) {
-    console.log('Literate extension is now active!');
-    let disposable = vscode.commands.registerCommand('literate.generateChangelog', () => __awaiter(this, void 0, void 0, function* () {
+    console.log('Change Scribe extension is now active!');
+    let disposable = vscode.commands.registerCommand('changeScribe.generateChangelog', () => __awaiter(this, void 0, void 0, function* () {
         try {
             yield (0, openai_1.initializeLLM)();
             const webviewPanel = (0, webview_1.createWebviewPanel)(context);
@@ -31,7 +33,7 @@ function activate(context) {
                         webviewPanel.webview.postMessage({ type: 'changelogSaved' });
                         break;
                     case 'commit':
-                        yield (0, git_1.commitChangelog)(message.content); // Pass the content to commitChangelog
+                        yield (0, git_1.commitChangelog)(message.content);
                         vscode.window.showInformationMessage('Changelog committed successfully!');
                         break;
                 }
@@ -42,53 +44,117 @@ function activate(context) {
         }
     }));
     context.subscriptions.push(disposable);
-    const updateLLMProviderCommand = vscode.commands.registerCommand('literate.updateLLMProvider', () => __awaiter(this, void 0, void 0, function* () {
-        const config = vscode.workspace.getConfiguration('literate');
+    const updateLLMProviderCommand = vscode.commands.registerCommand('changescribe.updateLLMProvider', () => __awaiter(this, void 0, void 0, function* () {
+        const config = vscode.workspace.getConfiguration('changeScribe');
         const llmProvider = config.get('llmProvider');
         // Update setting visibility
-        yield vscode.commands.executeCommand('setContext', 'literate.isOpenAI', llmProvider === 'openai');
-        yield vscode.commands.executeCommand('setContext', 'literate.isAzureOpenAI', llmProvider === 'azureopenai');
+        yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
+        yield vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
         vscode.window.showInformationMessage(`LLM provider updated to ${llmProvider}`);
     }));
     context.subscriptions.push(updateLLMProviderCommand);
     // Run the command once on activation to set initial visibility
-    vscode.commands.executeCommand('literate.updateLLMProvider');
+    vscode.commands.executeCommand('changescribe.updateLLMProvider');
 }
 function generateAndStreamChangelog(panel) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const config = vscode.workspace.getConfiguration('literate');
+            const config = vscode.workspace.getConfiguration('changeScribe');
             const maxCommits = config.get('maxCommits') || 50;
             const logResult = yield (0, git_1.getGitLog)(maxCommits);
+            let changelogContent = yield getExistingChangelogContent();
+            if (!changelogContent) {
+                changelogContent = getChangelogHeader();
+            }
+            let newChanges = "## [Unreleased]\n\n";
+            const changeTypes = {
+                "Added": [],
+                "Changed": [],
+                "Deprecated": [],
+                "Removed": [],
+                "Fixed": [],
+                "Security": []
+            };
             for (const commit of logResult.all) {
                 const changeType = getChangeType(commit.message);
                 const aiGeneratedDescription = yield (0, openai_1.getAIGeneratedDescription)(commit.message);
-                const changelogEntry = `## ${commit.date}: ${changeType}\n\n${aiGeneratedDescription}\n\nCommit: ${commit.hash}\nAuthor: ${commit.author_name} <${commit.author_email}>\n\n`;
-                panel.webview.postMessage({ type: 'updateChangelog', content: changelogEntry });
+                if (changeTypes[changeType]) {
+                    changeTypes[changeType].push(`- ${aiGeneratedDescription} (${commit.hash.substring(0, 7)})`);
+                }
+                else {
+                    changeTypes["Changed"].push(`- ${aiGeneratedDescription} (${commit.hash.substring(0, 7)})`);
+                }
             }
+            for (const [type, changes] of Object.entries(changeTypes)) {
+                if (changes.length > 0) {
+                    newChanges += `### ${type}\n${changes.join('\n')}\n\n`;
+                }
+            }
+            const updatedChangelog = insertNewChanges(changelogContent, newChanges);
+            panel.webview.postMessage({ type: 'updateChangelog', content: updatedChangelog });
             panel.webview.postMessage({ type: 'generationComplete' });
         }
         catch (error) {
-            throw new Error(`Error generating changelog: ${error instanceof Error ? error.message : String(error)}`);
+            panel.webview.postMessage({
+                type: 'updateChangelog',
+                content: `Error generating changelog: ${error instanceof Error ? error.message : String(error)}\n\n`
+            });
+            panel.webview.postMessage({ type: 'generationComplete' });
         }
     });
 }
 function getChangeType(commitMessage) {
     if (commitMessage.startsWith('feat:'))
-        return 'Feature';
+        return 'Added';
     if (commitMessage.startsWith('fix:'))
-        return 'Bug Fix';
+        return 'Fixed';
     if (commitMessage.startsWith('docs:'))
-        return 'Documentation';
+        return 'Changed';
     if (commitMessage.startsWith('style:'))
-        return 'Style';
+        return 'Changed';
     if (commitMessage.startsWith('refactor:'))
-        return 'Refactor';
+        return 'Changed';
     if (commitMessage.startsWith('test:'))
-        return 'Test';
+        return 'Changed';
     if (commitMessage.startsWith('chore:'))
-        return 'Chore';
-    return 'Other';
+        return 'Changed';
+    return 'Changed';
+}
+function getChangelogHeader() {
+    return `# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+`;
+}
+function getExistingChangelogContent() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (!workspaceFolders) {
+            return null;
+        }
+        const rootPath = workspaceFolders[0].uri.fsPath;
+        const changelogPath = path.join(rootPath, 'CHANGELOG.md');
+        try {
+            const content = yield fs.readFile(changelogPath, 'utf8');
+            return content;
+        }
+        catch (error) {
+            return null;
+        }
+    });
+}
+function insertNewChanges(existingContent, newChanges) {
+    const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
+    if (unreleasedIndex === -1) {
+        return existingContent + '\n' + newChanges;
+    }
+    const beforeUnreleased = existingContent.substring(0, unreleasedIndex);
+    const afterUnreleased = existingContent.substring(unreleasedIndex);
+    return beforeUnreleased + newChanges + afterUnreleased;
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map

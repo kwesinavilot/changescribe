@@ -13,14 +13,14 @@ exports.initializeLLM = initializeLLM;
 exports.getAIGeneratedDescription = getAIGeneratedDescription;
 const openai_1 = require("openai");
 const vscode = require("vscode");
-const azureOpenai_1 = require("./azureOpenai");
+const azureopenai_1 = require("./azureopenai");
 let openai;
 function initializeLLM() {
     return __awaiter(this, void 0, void 0, function* () {
-        const config = vscode.workspace.getConfiguration('literate');
+        const config = vscode.workspace.getConfiguration('changeScribe');
         const llmProvider = config.get('llmProvider');
         if (llmProvider === 'azureopenai') {
-            yield (0, azureOpenai_1.initializeAzureOpenAI)();
+            yield (0, azureopenai_1.initializeAzureOpenAI)();
         }
         else {
             yield initializeOpenAI();
@@ -29,7 +29,7 @@ function initializeLLM() {
 }
 function initializeOpenAI() {
     return __awaiter(this, void 0, void 0, function* () {
-        const config = vscode.workspace.getConfiguration('literate');
+        const config = vscode.workspace.getConfiguration('changeScribe');
         const apiKey = config.get('openaiApiKey');
         if (!apiKey) {
             throw new Error('OpenAI API key is not set. Please set it in the extension settings.');
@@ -39,10 +39,10 @@ function initializeOpenAI() {
 }
 function getAIGeneratedDescription(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
-        const config = vscode.workspace.getConfiguration('literate');
+        const config = vscode.workspace.getConfiguration('changeScribe');
         const llmProvider = config.get('llmProvider');
         if (llmProvider === 'azureopenai') {
-            return (0, azureOpenai_1.getAzureAIGeneratedDescription)(commitMessage);
+            return (0, azureopenai_1.getAzureAIGeneratedDescription)(commitMessage);
         }
         else {
             return getOpenAIGeneratedDescription(commitMessage);
@@ -52,19 +52,28 @@ function getAIGeneratedDescription(commitMessage) {
 function getOpenAIGeneratedDescription(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const config = vscode.workspace.getConfiguration('changeScribe');
+            const model = config.get('openaiModel');
+            if (!model) {
+                throw new Error('OpenAI model is not set in the configuration. Please set it in the extension settings.');
+            }
             const response = yield openai.chat.completions.create({
-                model: "gpt-3.5-turbo",
+                model: model,
                 messages: [
                     { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
                     { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }
                 ],
-                max_tokens: 100,
+                temperature: 0.1,
+                max_tokens: 150,
             });
             return response.choices[0].message.content || 'No description generated.';
         }
         catch (error) {
             console.error('Error generating AI description:', error);
-            return 'Error generating description.';
+            if (error instanceof Error && error.message.includes('API deployment for this resource does not exist')) {
+                return `Error: Azure OpenAI deployment not found. Please check your deployment configuration.`;
+            }
+            return `Error generating description: ${error instanceof Error ? error.message : String(error)}`;
         }
     });
 }
