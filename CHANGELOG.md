@@ -5,6 +5,19 @@ All notable changes to the "Literate" extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2023-12-17
+
+### Added
+
+- Support for Azure OpenAI as an alternative LLM provider
+- New user settings for selecting LLM provider and configuring Azure OpenAI
+- Created `azureOpenai.ts` service for Azure OpenAI integration
+
+### Changed
+
+- Modified `openai.ts` to support multiple LLM providers
+- Updated `extension.ts` to use the new multi-provider LLM initialization
+
 ## [0.2.0] - 2023-12-16
 
 ### Added

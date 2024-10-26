@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { getChangeType } from '../extension';
+import { getChangeType } from '../services/changelog';
 
 suite('Extension Test Suite', () => {
     test('getChangeType should return correct change type', () => {

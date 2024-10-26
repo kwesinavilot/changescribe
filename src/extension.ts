@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { initializeOpenAI } from './services/openai';
+import { initializeLLM } from './services/openai';
 import { getGitLog, commitChangelog } from './services/git';
 import { generateChangelog } from './services/changelog';
 import { createWebviewPanel, saveChangelog } from './services/webview';
@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const disposable = vscode.commands.registerCommand('literate.generateChangelog', async () => {
         try {
-            await initializeOpenAI();
+            await initializeLLM();
             const webviewPanel = createWebviewPanel(context);
             await generateAndDisplayChangelog(webviewPanel);
 

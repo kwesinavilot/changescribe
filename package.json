@@ -23,10 +23,31 @@
         "configuration": {
             "title": "Literate",
             "properties": {
+                "literate.llmProvider": {
+                    "type": "string",
+                    "enum": ["openai", "azureopenai"],
+                    "default": "openai",
+                    "description": "Select the LLM provider for generating changelog descriptions"
+                },
                 "literate.openaiApiKey": {
                     "type": "string",
                     "default": "",
                     "description": "OpenAI API Key for generating changelog descriptions"
+                },
+                "literate.azureOpenaiApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI API Key for generating changelog descriptions"
+                },
+                "literate.azureOpenaiEndpoint": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI API Endpoint"
+                },
+                "literate.azureOpenaiDeploymentName": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI Deployment Name"
                 },
                 "literate.changelogFormat": {
                     "type": "string",
@@ -68,7 +89,8 @@
     "dependencies": {
         "minimatch": "^10.0.1",
         "openai": "^4.0.0",
-        "simple-git": "^3.22.0"
+        "simple-git": "^3.22.0",
+        "@azure/openai": "^1.0.0-beta.5"
     },
     "overrides": {
         "minimatch": "^10.0.1"
