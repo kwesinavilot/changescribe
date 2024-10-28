@@ -1,6 +1,6 @@
 import { OpenAI } from 'openai';
 import * as vscode from 'vscode';
-import { initializeAzureOpenAI, getAzureAIGeneratedDescription } from './azureOpenai';
+import { initializeAzureOpenAI, getAzureAIGeneratedDescription } from './azureopenai';
 
 let openai: OpenAI;
 

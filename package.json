@@ -2,7 +2,7 @@
     "name": "changescribe",
     "displayName": "Change Scribe",
     "description": "Autogenerate concise, semantic change logs from your git history using AI",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "publisher": "kwesinavilot",
     "author": {
         "name": "Kwesi Navilot",
@@ -18,7 +18,26 @@
         "vscode": "^1.85.0"
     },
     "categories": [
+        "Programming Languages",
+        "SCM Providers",
+        "Formatters",
+        "AI",
+        "Azure",
+        "Language Packs",
+        "Machine Learning",
+        "Education",
         "Other"
+    ],
+    "keywords": [
+        "changelog",
+        "git",
+        "documentation",
+        "automation",
+        "semantic versioning",
+        "conventional commits",
+        "ai",
+        "openai",
+        "azure openai"
     ],
     "activationEvents": [
         "onCommand:changeScribe.generateChangelog"
@@ -38,50 +57,6 @@
         "configuration": {
             "title": "Change Scribe",
             "properties": {
-                "changeScribe.llmProvider": {
-                    "type": "string",
-                    "enum": [
-                        "openai",
-                        "azureopenai"
-                    ],
-                    "default": "openai",
-                    "description": "Select the LLM provider for generating changelog descriptions"
-                },
-                "changeScribe.openaiApiKey": {
-                    "type": "string",
-                    "default": "",
-                    "description": "OpenAI API Key for generating changelog descriptions"
-                },
-                "changeScribe.openaiModel": {
-                    "type": "string",
-                    "default": "",
-                    "description": "OpenAI Model for generating changelog descriptions"
-                },
-                "changeScribe.azureOpenaiApiKey": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Azure OpenAI API Key for generating changelog descriptions"
-                },
-                "changeScribe.azureOpenaiEndpoint": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Azure OpenAI API Endpoint"
-                },
-                "changeScribe.azureOpenaiDeploymentName": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Azure OpenAI Deployment Name"
-                },
-                "changeScribe.azureOpenaiApiVersion": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Azure OpenAI API Version"
-                },
-                "changeScribe.azureOpenaiModel": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Azure OpenAI Model"
-                },
                 "changeScribe.changelogFormat": {
                     "type": "string",
                     "default": "conventional",
@@ -89,12 +64,66 @@
                         "conventional",
                         "keepachangelog"
                     ],
-                    "description": "Format of the generated changelog"
+                    "description": "Format of the generated changelog",
+                    "order": 1
                 },
                 "changeScribe.maxCommits": {
                     "type": "number",
                     "default": 10,
-                    "description": "Maximum number of commits to include in the changelog"
+                    "description": "Maximum number of commits to include in the changelog",
+                    "order": 2
+                },
+                "changeScribe.llmProvider": {
+                    "type": "string",
+                    "enum": [
+                        "openai",
+                        "azureopenai"
+                    ],
+                    "default": "openai",
+                    "description": "Select the LLM provider for generating changelog descriptions",
+                    "order": 3
+                },
+                "changeScribe.openaiApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "OpenAI API Key for generating changelog descriptions",
+                    "order": 4
+                },
+                "changeScribe.openaiModel": {
+                    "type": "string",
+                    "default": "",
+                    "description": "OpenAI Model for generating changelog descriptions",
+                    "order": 5
+                },
+                "changeScribe.azureOpenaiApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI API Key for generating changelog descriptions",
+                    "order": 6
+                },
+                "changeScribe.azureOpenaiEndpoint": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI API Endpoint",
+                    "order": 7
+                },
+                "changeScribe.azureOpenaiDeploymentName": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI Deployment Name",
+                    "order": 8
+                },
+                "changeScribe.azureOpenaiApiVersion": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI API Version",
+                    "order": 9
+                },
+                "changeScribe.azureOpenaiModel": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Azure OpenAI Model",
+                    "order": 10
                 }
             }
         }
@@ -135,5 +164,6 @@
     },
     "overrides": {
         "minimatch": "^10.0.1"
-    }
+    },
+    "icon": "media/icon.png"
 }

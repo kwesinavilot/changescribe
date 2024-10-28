@@ -21,20 +21,54 @@ function activate(context) {
     console.log('Change Scribe extension is now active!');
     let disposable = vscode.commands.registerCommand('changeScribe.generateChangelog', () => __awaiter(this, void 0, void 0, function* () {
         try {
+            const config = vscode.workspace.getConfiguration('changeScribe');
+            const llmProvider = config.get('llmProvider');
+            if (llmProvider === 'azureopenai') {
+                const azureConfig = {
+                    apiKey: config.get('azureOpenaiApiKey'),
+                    endpoint: config.get('azureOpenaiEndpoint'),
+                    deploymentName: config.get('azureOpenaiDeploymentName')
+                };
+                if (!azureConfig.apiKey || !azureConfig.endpoint || !azureConfig.deploymentName) {
+                    throw new Error('Azure OpenAI configuration is incomplete. Please check your settings.');
+                }
+            }
             yield (0, openai_1.initializeLLM)();
             const webviewPanel = (0, webview_1.createWebviewPanel)(context);
             webviewPanel.webview.onDidReceiveMessage((message) => __awaiter(this, void 0, void 0, function* () {
                 switch (message.type) {
                     case 'webviewReady':
-                        yield generateAndStreamChangelog(webviewPanel);
+                        vscode.window.withProgress({
+                            location: vscode.ProgressLocation.Notification,
+                            title: "Change Scribe",
+                            cancellable: false
+                        }, (progress) => __awaiter(this, void 0, void 0, function* () {
+                            progress.report({ message: 'Initializing changelog generation...' });
+                            yield generateAndStreamChangelog(webviewPanel);
+                        }));
                         break;
                     case 'save':
-                        yield (0, webview_1.saveChangelog)(message.content);
-                        webviewPanel.webview.postMessage({ type: 'changelogSaved' });
+                        vscode.window.withProgress({
+                            location: vscode.ProgressLocation.Notification,
+                            title: "Change Scribe",
+                            cancellable: false
+                        }, (progress) => __awaiter(this, void 0, void 0, function* () {
+                            progress.report({ message: 'Saving changelog...' });
+                            yield (0, webview_1.saveChangelog)(message.content);
+                            webviewPanel.webview.postMessage({ type: 'changelogSaved' });
+                            vscode.window.showInformationMessage('Changelog saved successfully!');
+                        }));
                         break;
                     case 'commit':
-                        yield (0, git_1.commitChangelog)(message.content);
-                        vscode.window.showInformationMessage('Changelog committed successfully!');
+                        vscode.window.withProgress({
+                            location: vscode.ProgressLocation.Notification,
+                            title: "Change Scribe",
+                            cancellable: false
+                        }, (progress) => __awaiter(this, void 0, void 0, function* () {
+                            progress.report({ message: 'Committing changelog...' });
+                            yield (0, git_1.commitChangelog)(message.content);
+                            vscode.window.showInformationMessage('Changelog committed successfully!');
+                        }));
                         break;
                 }
             }), undefined, context.subscriptions);
@@ -50,7 +84,7 @@ function activate(context) {
         // Update setting visibility
         yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
         yield vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
-        vscode.window.showInformationMessage(`LLM provider updated to ${llmProvider}`);
+        vscode.window.showInformationMessage(`Change Scribe: LLM provider updated to ${llmProvider}`);
     }));
     context.subscriptions.push(updateLLMProviderCommand);
     // Run the command once on activation to set initial visibility

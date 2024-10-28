@@ -32,15 +32,37 @@ export function activate(context: vscode.ExtensionContext) {
                 async message => {
                     switch (message.type) {
                         case 'webviewReady':
-                            await generateAndStreamChangelog(webviewPanel);
+                            vscode.window.withProgress({
+                                location: vscode.ProgressLocation.Notification,
+                                title: "Change Scribe",
+                                cancellable: false
+                            }, async (progress) => {
+                                progress.report({ message: 'Initializing changelog generation...' });
+                                await generateAndStreamChangelog(webviewPanel);
+                            });
                             break;
                         case 'save':
-                            await saveChangelog(message.content);
-                            webviewPanel.webview.postMessage({ type: 'changelogSaved' });
+                            vscode.window.withProgress({
+                                location: vscode.ProgressLocation.Notification,
+                                title: "Change Scribe",
+                                cancellable: false
+                            }, async (progress) => {
+                                progress.report({ message: 'Saving changelog...' });
+                                await saveChangelog(message.content);
+                                webviewPanel.webview.postMessage({ type: 'changelogSaved' });
+                                vscode.window.showInformationMessage('Changelog saved successfully!');
+                            });
                             break;
                         case 'commit':
-                            await commitChangelog(message.content);
-                            vscode.window.showInformationMessage('Changelog committed successfully!');
+                            vscode.window.withProgress({
+                                location: vscode.ProgressLocation.Notification,
+                                title: "Change Scribe",
+                                cancellable: false
+                            }, async (progress) => {
+                                progress.report({ message: 'Committing changelog...' });
+                                await commitChangelog(message.content);
+                                vscode.window.showInformationMessage('Changelog committed successfully!');
+                            });
                             break;
                     }
                 },
@@ -62,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
         await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
         await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
 
-        vscode.window.showInformationMessage(`LLM provider updated to ${llmProvider}`);
+        vscode.window.showInformationMessage(`Change Scribe: LLM provider updated to ${llmProvider}`);
     });
 
     context.subscriptions.push(updateLLMProviderCommand);

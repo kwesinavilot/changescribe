@@ -5,6 +5,17 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2024-10-28
+### Added
+- New extension icon featuring a quill and scroll design
+- Extension categories in package.json for better marketplace visibility:
+- Keywords for improved marketplace searchability
+- Added an order property to the settings to improve the UI
+- Progress notifications for changelog operations:
+  - Generation progress indicator
+  - Saving progress indicator
+  - Committing progress indicator
+
 ## [0.6.0] - 2024-10-26
 
 ### Changed
