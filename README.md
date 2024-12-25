@@ -1,4 +1,4 @@
-# <p align="center" style="display: flex; align-items: center;"><img src="media/icon.png" width="50" height="50" alt="Change Scribe Logo">&nbsp;Change Scribe</p>
+# <p style="display: flex; align-items: center;"><img src="media/icon.png" width="50" height="50" alt="Change Scribe Logo">&nbsp;Change Scribe</p>
 
 Change Scribe is an VS Code extension that automates the generation of semantic change logs for your repositories and project. It uses LLMs to analyze your Git commit history and creates meaningful, well-formatted, semantic changelog entries.
 
