@@ -8,6 +8,8 @@
         "name": "Kwesi Navilot",
         "url": "https://github.com/kwesinavilot"
     },
+    "icon": "media/icon.png",
+    "pricing": "Free",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -165,5 +167,7 @@
     "overrides": {
         "minimatch": "^10.0.1"
     },
-    "icon": "media/icon.png"
+    "bugs": {
+        "url": "https://github.com/kwesinavilot/changescribe/issues"
+    }
 }

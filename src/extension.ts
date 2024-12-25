@@ -5,8 +5,16 @@ import { initializeLLM, getAIGeneratedDescription } from './services/openai';
 import { getGitLog, commitChangelog } from './services/git';
 import { createWebviewPanel, saveChangelog } from './services/webview';
 
+/**
+ * Called when the extension is activated.
+ * 
+ * This function registers commands to generate changelogs, save them, and commit them to the Git repository.
+ * It also sets up event listeners for the webview to receive messages from the UI and interact with the codebase.
+ * 
+ * @param {vscode.ExtensionContext} context The context of the extension activation.
+ */
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Change Scribe extension is now active!');
+    vscode.window.showInformationMessage('Change Scribe extension is now active!');
 
     let disposable = vscode.commands.registerCommand('changeScribe.generateChangelog', async () => {
         try {
@@ -142,9 +150,20 @@ async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
             content: `Error generating changelog: ${error instanceof Error ? error.message : String(error)}\n\n` 
         });
         panel.webview.postMessage({ type: 'generationComplete' });
+        vscode.window.showErrorMessage(`Error generating changelog: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
 
+/**
+ * Given a commit message, returns the type of change it represents. This is
+ * determined by the first word of the commit message, which should be one of
+ * "feat", "fix", "docs", "style", "refactor", "test", or "chore". If the first
+ * word is not one of those, then the change type is "Changed". The returned
+ * string is one of "Added", "Fixed", "Changed", "Deprecated", "Removed",
+ * or "Security".
+ * @param {string} commitMessage The commit message to parse.
+ * @returns {string} The type of change represented by the commit message.
+ */
 function getChangeType(commitMessage: string): string {
     if (commitMessage.startsWith('feat:')) return 'Added';
     if (commitMessage.startsWith('fix:')) return 'Fixed';
@@ -167,6 +186,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 `;
 }
 
+/**
+ * Reads the contents of the CHANGELOG.md file in the root of the current workspace.
+ * If no workspace is open or the file does not exist, returns null.
+ * @returns {Promise<string | null>} The contents of the CHANGELOG.md file or null.
+ */
 async function getExistingChangelogContent(): Promise<string | null> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
@@ -184,6 +208,15 @@ async function getExistingChangelogContent(): Promise<string | null> {
     }
 }
 
+/**
+ * Inserts the new changes into the existing changelog content.
+ * If the existing changelog content does not contain an "## [Unreleased]" header,
+ * the new changes are appended to the end of the existing content.
+ * Otherwise, the new changes are inserted before the "## [Unreleased]" header.
+ * @param {string} existingContent - The existing changelog content.
+ * @param {string} newChanges - The new changes to be inserted.
+ * @returns {string} The updated changelog content.
+ */
 function insertNewChanges(existingContent: string, newChanges: string): string {
     const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
     if (unreleasedIndex === -1) {
