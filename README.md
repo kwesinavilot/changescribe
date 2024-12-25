@@ -7,6 +7,7 @@ Change Scribe is an VS Code extension that automates the generation of semantic 
 - Automatically generate changelogs from your Git commit history
 - Use LLMs to create concise and meaningful descriptions for each change
 - Support for both OpenAI and Azure OpenAI as LLM providers
+- Support for custom OpenAI API endpoints
 - Smart changelog management:
   - Append to existing CHANGELOG.md
   - Preserve existing content
