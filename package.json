@@ -66,13 +66,13 @@
                         "conventional",
                         "keepachangelog"
                     ],
-                    "description": "Format of the generated changelog",
+                    "description": "The format of the generated changelog",
                     "order": 1
                 },
                 "changeScribe.maxCommits": {
                     "type": "number",
                     "default": 10,
-                    "description": "Maximum number of commits to include in the changelog",
+                    "description": "The maximum number of commits to include in the changelog",
                     "order": 2
                 },
                 "changeScribe.llmProvider": {
@@ -88,44 +88,50 @@
                 "changeScribe.openaiApiKey": {
                     "type": "string",
                     "default": "",
-                    "description": "OpenAI API Key for generating changelog descriptions",
+                    "description": "Your OpenAI API Key for generating changelog descriptions",
                     "order": 4
                 },
                 "changeScribe.openaiModel": {
                     "type": "string",
                     "default": "",
-                    "description": "OpenAI Model for generating changelog descriptions",
+                    "description": "The OpenAI Model for generating changelog descriptions",
                     "order": 5
+                },
+                "changeScribe.openaiApiEndpoint": {
+                    "type": "string",
+                    "default": "https://api.openai.com/v1",
+                    "description": "Your custom OpenAI API Endpoint",
+                    "order": 6
                 },
                 "changeScribe.azureOpenaiApiKey": {
                     "type": "string",
                     "default": "",
-                    "description": "Azure OpenAI API Key for generating changelog descriptions",
-                    "order": 6
+                    "description": "Your Azure OpenAI API Key for generating changelog descriptions",
+                    "order": 7
                 },
                 "changeScribe.azureOpenaiEndpoint": {
                     "type": "string",
                     "default": "",
-                    "description": "Azure OpenAI API Endpoint",
-                    "order": 7
+                    "description": "Your Azure OpenAI API Endpoint",
+                    "order": 8
                 },
                 "changeScribe.azureOpenaiDeploymentName": {
                     "type": "string",
                     "default": "",
-                    "description": "Azure OpenAI Deployment Name",
-                    "order": 8
+                    "description": "The Azure OpenAI Deployment Name",
+                    "order": 9
                 },
                 "changeScribe.azureOpenaiApiVersion": {
                     "type": "string",
                     "default": "",
-                    "description": "Azure OpenAI API Version",
-                    "order": 9
+                    "description": "The Azure OpenAI API Version",
+                    "order": 10
                 },
                 "changeScribe.azureOpenaiModel": {
                     "type": "string",
                     "default": "",
-                    "description": "Azure OpenAI Model",
-                    "order": 10
+                    "description": "The Azure OpenAI Model",
+                    "order": 11
                 }
             }
         }

@@ -21,6 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
             const config = vscode.workspace.getConfiguration('changeScribe');
             const llmProvider = config.get<string>('llmProvider');
 
+            // Check if the necessary configuration options are set
             if (llmProvider === 'azureopenai') {
                 const azureConfig = {
                     apiKey: config.get<string>('azureOpenaiApiKey'),
@@ -30,6 +31,16 @@ export function activate(context: vscode.ExtensionContext) {
 
                 if (!azureConfig.apiKey || !azureConfig.endpoint || !azureConfig.deploymentName) {
                     throw new Error('Azure OpenAI configuration is incomplete. Please check your settings.');
+                }
+            } else if (llmProvider === 'openai') {
+                // for OpenAI, check if there's an apiKey and a custom endpoint
+                const openaiConfig = {
+                    apiKey: config.get<string>('openaiApiKey'),
+                    endpoint: config.get<string>('openaiApiEndpoint') || 'https://api.openai.com/v1'
+                };
+
+                if (!openaiConfig.apiKey) {
+                    throw new Error('OpenAI configuration is incomplete. Please check your settings.');
                 }
             }
 
@@ -92,7 +103,7 @@ export function activate(context: vscode.ExtensionContext) {
         await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
         await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
 
-        vscode.window.showInformationMessage(`Change Scribe: LLM provider updated to ${llmProvider}`);
+        vscode.window.showInformationMessage(`Change Scribe: LLM provider is currently set to ${llmProvider}`);
     });
 
     context.subscriptions.push(updateLLMProviderCommand);
@@ -101,6 +112,18 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('changescribe.updateLLMProvider');
 }
 
+        /**
+         * Generates a changelog based on the latest commits in the Git repository and streams it to the webview.
+         * 
+         * This function gets the latest commits from the Git repository, generates descriptions for each using AI,
+         * and then builds a changelog based on the commit messages. The changelog is then streamed to the webview
+         * for display and further editing.
+         * 
+         * If an error occurs during generation, the error message is displayed in the webview and in a notification
+         * box.
+         * 
+         * @param {vscode.WebviewPanel} panel The webview panel to stream the changelog to.
+         */
 async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
@@ -175,6 +198,14 @@ function getChangeType(commitMessage: string): string {
     return 'Changed';
 }
 
+/**
+ * Generates the header section for a changelog file.
+ *
+ * The header includes a title, a brief description of the purpose of the changelog,
+ * and references to the Keep a Changelog format and Semantic Versioning.
+ *
+ * @returns {string} The formatted changelog header.
+ */
 function getChangelogHeader(): string {
     return `# Changelog
 

@@ -4,6 +4,15 @@ import { initializeAzureOpenAI, getAzureAIGeneratedDescription } from './azureop
 
 let openai: OpenAI;
 
+/**
+ * Initializes the chosen LLM provider by setting up the API client and
+ * loading any required configuration. The chosen provider is determined by
+ * the 'llmProvider' setting in the 'changeScribe' configuration.
+ *
+ * @throws {Error} If the chosen LLM provider is not supported or if the
+ * necessary configuration options are missing.
+ * @returns {Promise<void>}
+ */
 export async function initializeLLM() {
     const config = vscode.workspace.getConfiguration('changeScribe');
     const llmProvider = config.get<string>('llmProvider');
@@ -15,6 +24,14 @@ export async function initializeLLM() {
     }
 }
 
+/**
+ * Initializes the OpenAI API client and loads the OpenAI API key from the
+ * 'changeScribe' configuration. The 'openaiApiKey' setting must be set in the
+ * extension settings before this function is called.
+ *
+ * @throws {Error} If the 'openaiApiKey' setting is not set.
+ * @returns {Promise<void>}
+ */
 async function initializeOpenAI() {
     const config = vscode.workspace.getConfiguration('changeScribe');
     const apiKey = config.get<string>('openaiApiKey');
@@ -26,6 +43,17 @@ async function initializeOpenAI() {
     openai = new OpenAI({ apiKey });
 }
 
+/**
+ * Uses the chosen LLM provider to generate a description from a given commit
+ * message. The chosen provider is determined by the 'llmProvider' setting in
+ * the 'changeScribe' configuration. If the chosen provider is 'openai', the
+ * description is generated using the OpenAI API. If the chosen provider is
+ * 'azureopenai', the description is generated using the Azure OpenAI API.
+ *
+ * @param {string} commitMessage The commit message to generate a description
+ * for.
+ * @returns {Promise<string>} The generated description.
+ */
 export async function getAIGeneratedDescription(commitMessage: string): Promise<string> {
     const config = vscode.workspace.getConfiguration('changeScribe');
     const llmProvider = config.get<string>('llmProvider');
@@ -37,6 +65,14 @@ export async function getAIGeneratedDescription(commitMessage: string): Promise<
     }
 }
 
+/**
+ * Uses the OpenAI API to generate a description from a given commit message.
+ *
+ * @param {string} commitMessage The commit message to generate a description for.
+ * @returns {Promise<string>} The generated description.
+ * @throws {Error} If the OpenAI API key or model is not set in the configuration.
+ * @throws {Error} If the OpenAI API returns an error.
+ */
 async function getOpenAIGeneratedDescription(commitMessage: string): Promise<string> {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
