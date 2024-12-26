@@ -34,13 +34,13 @@ export async function generateChangelog(logResult: LogResult): Promise<string> {
 
 export function getChangeType(commitMessage: string): string {
     if (commitMessage.startsWith('feat:')) return 'Feature';
-    if (commitMessage.startsWith('fix:')) return 'Bug Fix';
+    if (commitMessage.startsWith('fix:')) return 'Fixed';
     if (commitMessage.startsWith('docs:')) return 'Documentation';
     if (commitMessage.startsWith('style:')) return 'Style';
     if (commitMessage.startsWith('refactor:')) return 'Refactor';
     if (commitMessage.startsWith('test:')) return 'Test';
     if (commitMessage.startsWith('chore:')) return 'Chore';
-    return 'Other';
+    return 'Changed';
 }
 
 export function getChangelogHeader(): string {
@@ -95,19 +95,35 @@ export async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
         }
 
         let newChanges = "## [Unreleased]\n\n";
+        // const changeTypes: { [key: string]: string[] } = {
+        //     "Added": [],
+        //     "Changed": [],
+        //     "Deprecated": [],
+        //     "Removed": [],
+        //     "Fixed": [],
+        //     "Security": []
+        // };
+
         const changeTypes: { [key: string]: string[] } = {
-            "Added": [],
-            "Changed": [],
-            "Deprecated": [],
-            "Removed": [],
+            "Feature": [],
             "Fixed": [],
-            "Security": []
+            "Documentation": [],
+            "Style": [],
+            "Refactor": [],
+            "Test": [],
+            "Chore": [],
+            "Changed": [] // Default category
         };
 
         // Process commits and generate changelog entries
         for (const commit of logResult.all) {
             const changeType = getChangeType(commit.message);
-            changeTypes[changeType].push(commit.message);
+            if (changeTypes[changeType]) {
+                changeTypes[changeType].push(commit.message);
+            } else {
+                // Handle unexpected change types
+                changeTypes["Changed"].push(commit.message);
+            }
         }
 
         // Build the new changes section

@@ -67,14 +67,26 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     const updateLLMProviderCommand = vscode.commands.registerCommand('changescribe.updateLLMProvider', async () => {
         const config = vscode.workspace.getConfiguration('changeScribe');
-        const llmProvider = config.get<string>('llmProvider');
+        const llmProviders = ['openai', 'azureopenai', 'openai-compatible'];
+        const currentProvider = config.get<string>('llmProvider');
 
-        // Update setting visibility
-        await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
-        await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
-        await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', llmProvider === 'openai-compatible');
+        const selectedProvider = await vscode.window.showQuickPick(llmProviders, {
+            placeHolder: 'Select LLM Provider',
+            ignoreFocusOut: true
+        });
 
-        vscode.window.showInformationMessage(`Change Scribe: LLM provider is currently set to ${llmProvider}`);
+        if (selectedProvider) {
+            await config.update('llmProvider', selectedProvider, vscode.ConfigurationTarget.Global);
+
+            // Update setting visibility
+            await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', selectedProvider === 'openai');
+            await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', selectedProvider === 'azureopenai');
+            await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', selectedProvider === 'openai-compatible');
+
+            vscode.window.showInformationMessage(`Change Scribe: LLM provider is now set to ${selectedProvider}`);
+        } else {
+            vscode.window.showInformationMessage(`Change Scribe: LLM provider remains ${currentProvider}`);
+        }
     });
 
     context.subscriptions.push(updateLLMProviderCommand);

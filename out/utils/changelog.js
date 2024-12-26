@@ -48,7 +48,7 @@ function getChangeType(commitMessage) {
     if (commitMessage.startsWith('feat:'))
         return 'Feature';
     if (commitMessage.startsWith('fix:'))
-        return 'Bug Fix';
+        return 'Fixed';
     if (commitMessage.startsWith('docs:'))
         return 'Documentation';
     if (commitMessage.startsWith('style:'))
@@ -59,7 +59,7 @@ function getChangeType(commitMessage) {
         return 'Test';
     if (commitMessage.startsWith('chore:'))
         return 'Chore';
-    return 'Other';
+    return 'Changed';
 }
 function getChangelogHeader() {
     return `# Changelog
@@ -108,18 +108,34 @@ function generateAndStreamChangelog(panel) {
                 changelogContent = getChangelogHeader();
             }
             let newChanges = "## [Unreleased]\n\n";
+            // const changeTypes: { [key: string]: string[] } = {
+            //     "Added": [],
+            //     "Changed": [],
+            //     "Deprecated": [],
+            //     "Removed": [],
+            //     "Fixed": [],
+            //     "Security": []
+            // };
             const changeTypes = {
-                "Added": [],
-                "Changed": [],
-                "Deprecated": [],
-                "Removed": [],
+                "Feature": [],
                 "Fixed": [],
-                "Security": []
+                "Documentation": [],
+                "Style": [],
+                "Refactor": [],
+                "Test": [],
+                "Chore": [],
+                "Changed": [] // Default category
             };
             // Process commits and generate changelog entries
             for (const commit of logResult.all) {
                 const changeType = getChangeType(commit.message);
-                changeTypes[changeType].push(commit.message);
+                if (changeTypes[changeType]) {
+                    changeTypes[changeType].push(commit.message);
+                }
+                else {
+                    // Handle unexpected change types
+                    changeTypes["Changed"].push(commit.message);
+                }
             }
             // Build the new changes section
             for (const [type, messages] of Object.entries(changeTypes)) {

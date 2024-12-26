@@ -5,6 +5,17 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2024-12-26
+### Added
+- Added `changescribe.updateLLMProvider` command to update the LLM provider and toggle setting visibility.
+
+### Changed
+- Updated `generateAndStreamChangelog` function to ensure all possible change types are included in the `changeTypes` object.
+- Improved error handling for unexpected change types in the `generateAndStreamChangelog` function.
+
+### Fixed
+- Fixed error `Cannot read properties of undefined (reading 'push')` by ensuring `changeTypes` object includes all possible return values from `getChangeType`.
+
 ## [0.9.0] - 2024-12-26
 ### Added
 - Unified `getAIGeneratedDescription` function to handle AI description generation for different LLM providers.

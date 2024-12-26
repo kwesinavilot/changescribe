@@ -70,12 +70,23 @@ function registerCommands(context) {
     context.subscriptions.push(disposable);
     const updateLLMProviderCommand = vscode.commands.registerCommand('changescribe.updateLLMProvider', () => __awaiter(this, void 0, void 0, function* () {
         const config = vscode.workspace.getConfiguration('changeScribe');
-        const llmProvider = config.get('llmProvider');
-        // Update setting visibility
-        yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
-        yield vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
-        yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', llmProvider === 'openai-compatible');
-        vscode.window.showInformationMessage(`Change Scribe: LLM provider is currently set to ${llmProvider}`);
+        const llmProviders = ['openai', 'azureopenai', 'openai-compatible'];
+        const currentProvider = config.get('llmProvider');
+        const selectedProvider = yield vscode.window.showQuickPick(llmProviders, {
+            placeHolder: 'Select LLM Provider',
+            ignoreFocusOut: true
+        });
+        if (selectedProvider) {
+            yield config.update('llmProvider', selectedProvider, vscode.ConfigurationTarget.Global);
+            // Update setting visibility
+            yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', selectedProvider === 'openai');
+            yield vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', selectedProvider === 'azureopenai');
+            yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', selectedProvider === 'openai-compatible');
+            vscode.window.showInformationMessage(`Change Scribe: LLM provider is now set to ${selectedProvider}`);
+        }
+        else {
+            vscode.window.showInformationMessage(`Change Scribe: LLM provider remains ${currentProvider}`);
+        }
     }));
     context.subscriptions.push(updateLLMProviderCommand);
     // Run the command once on activation to set initial visibility
