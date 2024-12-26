@@ -11,17 +11,17 @@ export async function initializeAzureOpenAI() {
     const apiVersion = config.get<string>('azureOpenaiApiVersion');
 
     if (!apiKey) {
-        throw new Error('Azure OpenAI API key is not set. Please set it in the extension settings (changeScribe.azureOpenaiApiKey).');
+        throw new Error('Azure OpenAI API key is not set. Please set it in the extension settings (Change Scribe: Azure Openai Api Key).');
     }
     if (!endpoint) {
-        throw new Error('Azure OpenAI endpoint is not set. Please set it in the extension settings (changeScribe.azureOpenaiEndpoint).');
+        throw new Error('Azure OpenAI endpoint is not set. Please set it in the extension settings (Change Scribe: Azure Openai Endpoint).');
     }
     if (!deployment) {
-        throw new Error('Azure OpenAI deployment name is not set. Please set it in the extension settings (changeScribe.azureOpenaiDeploymentName).');
+        throw new Error('Azure OpenAI deployment name is not set. Please set it in the extension settings (Change Scribe: Azure Openai Deployment Name).');
     }
 
     if (!apiVersion) {
-        throw new Error('Azure OpenAI API version is not set. Please set it in the extension settings (changeScribe.azureOpenaiApiVersion).');
+        throw new Error('Azure OpenAI API version is not set. Please set it in the extension settings (Change Scribe: Azure Openai Api Version).');
     }
 
     client = new AzureOpenAI({
@@ -32,7 +32,7 @@ export async function initializeAzureOpenAI() {
     });
 }
 
-export async function getAzureAIGeneratedDescription(commitMessage: string): Promise<string> {
+export async function generateWithAzureOpenAI(commitMessage: string): Promise<string> {
     try {
         if (!client) {
             throw new Error('Azure OpenAI client is not initialized. Please initialize it first.');

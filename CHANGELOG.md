@@ -5,6 +5,21 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2024-12-26
+### Added
+- Added support for Google's Gemini models as an LLM provider
+- Added Gemini to the list of available LLM providers in `changescribe.updateLLMProvider` command
+- Added configuration options for Gemini API key and model selection
+
+### Changed
+- Updated error messages for LLM provider configurations to be more descriptive and helpful
+- Renamed LLM service functions for better clarity and consistency:
+- Enhanced LLM provider selection UI in command palette
+
+### Fixed
+- Improved error handling for invalid or missing LLM provider configurations
+- Fixed validation of API keys and endpoints for all LLM providers
+
 ## [0.9.2] - 2024-12-26
 ### Added
 - Added merging functionality for existing Unreleased changes with new changes

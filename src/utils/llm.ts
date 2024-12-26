@@ -1,31 +1,46 @@
-import { initializeOpenAI, getOpenAIGeneration } from '../services/openai';
-import { initializeAzureOpenAI, getAzureAIGeneratedDescription } from '../services/azureopenai';
-import { initializeOAICompatible, getOAICompatibleGeneration } from '../services/openaicompatible';
 import * as vscode from 'vscode';
+import { initializeOpenAI, generateWithOpenAI } from '../services/openai';
+import { initializeAzureOpenAI, generateWithAzureOpenAI } from '../services/azureopenai';
+import { initializeOpenAICompatible, generateWithOpenAICompatible } from '../services/openaicompatible';
+import { initializeGemini, generateWithGemini } from '../services/gemini';
 
-let llmProvider: string;
+let currentProvider: string;
 
-export async function initializeLLM() {
+export async function initializeLLM(): Promise<void> {
     const config = vscode.workspace.getConfiguration('changeScribe');
-    llmProvider = config.get<string>('llmProvider') || 'openai';
+    currentProvider = config.get<string>('llmProvider') || 'openai';
 
-    if (llmProvider === 'openai') {
-        await initializeOpenAI();
-    } else if (llmProvider === 'azureopenai') {
-        await initializeAzureOpenAI();
-    } else if (llmProvider === 'openai-compatible') {
-        await initializeOAICompatible();
+    switch (currentProvider) {
+        case 'openai':
+            initializeOpenAI();
+            break;
+        case 'azureopenai':
+            initializeAzureOpenAI();
+            break;
+        case 'openai-compatible':
+            initializeOpenAICompatible();
+            break;
+        case 'gemini':
+            initializeGemini();
+            break;
+        default:
+            throw new Error(`Unsupported LLM provider: ${currentProvider}`);
     }
 }
 
 export async function getAIGeneratedDescription(commitMessage: string): Promise<string> {
-    if (llmProvider === 'openai') {
-        return await getOpenAIGeneration(commitMessage);
-    } else if (llmProvider === 'azureopenai') {
-        return await getAzureAIGeneratedDescription(commitMessage);
-    } else if (llmProvider === 'openai-compatible') {
-        return await getOAICompatibleGeneration(commitMessage);
-    } else {
-        throw new Error('LLM provider is not initialized or not supported.');
+    const prompt = `Generate a clear and concise changelog entry from this commit message: "${commitMessage}"`;
+
+    switch (currentProvider) {
+        case 'openai':
+            return generateWithOpenAI(prompt);
+        case 'azureopenai':
+            return generateWithAzureOpenAI(prompt);
+        case 'openai-compatible':
+            return generateWithOpenAICompatible(prompt);
+        case 'gemini':
+            return generateWithGemini(prompt);
+        default:
+            throw new Error(`Unsupported LLM provider: ${currentProvider}`);
     }
 }

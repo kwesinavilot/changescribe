@@ -9,6 +9,7 @@ Change Scribe is an VS Code extension that automates the generation of semantic 
 - Support for both OpenAI and Azure OpenAI as LLM providers
 - Support for custom OpenAI API endpoints
 - Support for LLM providers that use the OpenAI package like Groq and SambaNova
+- Support for Google Gemini models
 - Smart changelog management:
   - Append to existing CHANGELOG.md
   - Preserve existing content
@@ -45,12 +46,14 @@ Before using Change Scribe, you need to set up a few configuration options:
    - openai: To use the OpenAI models
    - azureopenai: To use the Azure OpenAI models
    - openai-compatible: To use LLM providers that use the OpenAI package like Groq and SambaNova
+   - gemini: To use Google Gemini models
 4. (Optional) Choose your preferred changelog format. Defaults to Keep a Changelog format
 5. (Optional) Set the maximum number of commits to include. Defaults to 50
 6. Provide the necessary API credentials:
    - For OpenAI: Set your OpenAI API key, model name, and optional API endpoint
    - For Azure OpenAI: Set your API key, endpoint, deployment name, and model name
    - For OpenAI-compatible LLMs: Set your API key, model name, and API endpoint
+   - For Gemini: Set your API key, and model name
 
 ## Configuring Models
 
@@ -78,6 +81,11 @@ There are some LLM providers that use the OpenAI package, such as Groq and Samba
 - **OpenAI Compatible API Key**: Your Provider's API Key for generating changelog descriptions (e.g. your Groq API Key).
 - **OpenAI Compatible API Endpoint**: Your Providers API Endpoint (e.g. your Groq API Endpoint).
 - **OpenAI Compatible Model**: The Model from the Provider that you want to use for generating changelog descriptions (e.g. your Groq Model; llama-2-7b-chat).
+
+### Gemini
+To configure Google Gemini as your LLM provider, you need to provide the following details in the VS Code settings:
+- **Gemini API Key**: Your Gemini API Key for generating changelog descriptions.
+- **Gemini Model**: The Gemini Model for generating changelog descriptions.
 
 ## Usage
 

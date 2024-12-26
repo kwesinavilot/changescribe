@@ -9,8 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeOAICompatible = initializeOAICompatible;
-exports.getOAICompatibleGeneration = getOAICompatibleGeneration;
+exports.initializeOpenAICompatible = initializeOpenAICompatible;
+exports.generateWithOpenAICompatible = generateWithOpenAICompatible;
 const vscode = require("vscode");
 const openai_1 = require("openai");
 let openaiCompatible;
@@ -21,13 +21,16 @@ let openaiCompatible;
  * @throws {Error} If the OpenAI-compatible API key is not set in the configuration.
  * @returns {Promise<void>}
  */
-function initializeOAICompatible() {
+function initializeOpenAICompatible() {
     return __awaiter(this, void 0, void 0, function* () {
         const config = vscode.workspace.getConfiguration('changeScribe');
         const apiKey = config.get('openaiCompatibleAPIKey');
         const endpoint = config.get('openaiCompatibleApiEndpoint') || 'https://api.openai.com/v1';
         if (!apiKey) {
-            throw new Error('OpenAI-compatible API key is not set. Please set it in the extension settings.');
+            throw new Error('OpenAI-compatible API key is not set. Please set it in the extension settings (Change Scribe: Openai Compatible Api Key).');
+        }
+        if (!endpoint) {
+            throw new Error('OpenAI-compatible API endpoint is not set. Please set it in the extension settings (Change Scribe: Openai Compatible Api Endpoint).');
         }
         openaiCompatible = new openai_1.OpenAI({
             apiKey: apiKey,
@@ -43,13 +46,13 @@ function initializeOAICompatible() {
  * @throws {Error} If the OpenAI-compatible API key or model is not set in the configuration.
  * @throws {Error} If the OpenAI-compatible API returns an error.
  */
-function getOAICompatibleGeneration(commitMessage) {
+function generateWithOpenAICompatible(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const config = vscode.workspace.getConfiguration('changeScribe');
             const model = config.get('openaiCompatibleModel');
             if (!model) {
-                throw new Error('OpenAI-compatible model is not set in the configuration. Please set it in the extension settings.');
+                throw new Error('OpenAI-compatible model is not set in the configuration. Please set it in the extension settings (Change Scribe: Openai Compatible Model).');
             }
             const response = yield openaiCompatible.chat.completions.create({
                 model: model,

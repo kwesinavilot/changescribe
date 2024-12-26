@@ -18,7 +18,7 @@ export async function initializeOpenAI() {
     const endpoint = config.get<string>('openaiApiEndpoint') || 'https://api.openai.com/v1'
 
     if (!apiKey) {
-        throw new Error('OpenAI API key is not set. Please set it in the extension settings.');
+        throw new Error('OpenAI API key is not set. Please set it in the extension settings (Change Scribe: Openai Api Key).');
     }
 
     openai = new OpenAI({ 
@@ -35,7 +35,7 @@ export async function initializeOpenAI() {
  * @throws {Error} If the OpenAI API key or model is not set in the configuration.
  * @throws {Error} If the OpenAI API returns an error.
  */
-export async function getOpenAIGeneration(commitMessage: string): Promise<string> {
+export async function generateWithOpenAI(commitMessage: string): Promise<string> {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
         const model = config.get<string>('openaiModel');

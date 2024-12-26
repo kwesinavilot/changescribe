@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeOpenAI = initializeOpenAI;
-exports.getOpenAIGeneration = getOpenAIGeneration;
+exports.generateWithOpenAI = generateWithOpenAI;
 const openai_1 = require("openai");
 const vscode = require("vscode");
 let openai;
@@ -29,7 +29,7 @@ function initializeOpenAI() {
         const apiKey = config.get('openaiApiKey');
         const endpoint = config.get('openaiApiEndpoint') || 'https://api.openai.com/v1';
         if (!apiKey) {
-            throw new Error('OpenAI API key is not set. Please set it in the extension settings.');
+            throw new Error('OpenAI API key is not set. Please set it in the extension settings (Change Scribe: Openai Api Key).');
         }
         openai = new openai_1.OpenAI({
             apiKey: apiKey,
@@ -45,7 +45,7 @@ function initializeOpenAI() {
  * @throws {Error} If the OpenAI API key or model is not set in the configuration.
  * @throws {Error} If the OpenAI API returns an error.
  */
-function getOpenAIGeneration(commitMessage) {
+function generateWithOpenAI(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const config = vscode.workspace.getConfiguration('changeScribe');

@@ -10,13 +10,17 @@ let openaiCompatible: OpenAI;
  * @throws {Error} If the OpenAI-compatible API key is not set in the configuration.
  * @returns {Promise<void>}
  */
-export async function initializeOAICompatible() {
+export async function initializeOpenAICompatible() {
     const config = vscode.workspace.getConfiguration('changeScribe');
     const apiKey = config.get<string>('openaiCompatibleAPIKey');
     const endpoint = config.get<string>('openaiCompatibleApiEndpoint') || 'https://api.openai.com/v1';
 
     if (!apiKey) {
-        throw new Error('OpenAI-compatible API key is not set. Please set it in the extension settings.');
+        throw new Error('OpenAI-compatible API key is not set. Please set it in the extension settings (Change Scribe: Openai Compatible Api Key).');
+    }
+
+    if (!endpoint) {
+        throw new Error('OpenAI-compatible API endpoint is not set. Please set it in the extension settings (Change Scribe: Openai Compatible Api Endpoint).');
     }
 
     openaiCompatible = new OpenAI({ 
@@ -33,13 +37,13 @@ export async function initializeOAICompatible() {
  * @throws {Error} If the OpenAI-compatible API key or model is not set in the configuration.
  * @throws {Error} If the OpenAI-compatible API returns an error.
  */
-export async function getOAICompatibleGeneration(commitMessage: string): Promise<string> {
+export async function generateWithOpenAICompatible(commitMessage: string): Promise<string> {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
         const model = config.get<string>('openaiCompatibleModel');
 
         if (!model) {
-            throw new Error('OpenAI-compatible model is not set in the configuration. Please set it in the extension settings.');
+            throw new Error('OpenAI-compatible model is not set in the configuration. Please set it in the extension settings (Change Scribe: Openai Compatible Model).');
         }
 
         const response = await openaiCompatible.chat.completions.create({

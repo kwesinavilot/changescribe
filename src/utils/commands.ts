@@ -67,7 +67,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     const updateLLMProviderCommand = vscode.commands.registerCommand('changescribe.updateLLMProvider', async () => {
         const config = vscode.workspace.getConfiguration('changeScribe');
-        const llmProviders = ['openai', 'azureopenai', 'openai-compatible'];
+        const llmProviders = ['openai', 'azureopenai', 'openai-compatible', 'gemini'];
         const currentProvider = config.get<string>('llmProvider');
 
         const selectedProvider = await vscode.window.showQuickPick(llmProviders, {
@@ -82,6 +82,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
             await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', selectedProvider === 'openai');
             await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', selectedProvider === 'azureopenai');
             await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', selectedProvider === 'openai-compatible');
+            await vscode.commands.executeCommand('setContext', 'changescribe.isGemini', selectedProvider === 'gemini');
 
             vscode.window.showInformationMessage(`Change Scribe: LLM provider is now set to ${selectedProvider}`);
         } else {

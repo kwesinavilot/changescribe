@@ -2,7 +2,7 @@
     "name": "changescribe",
     "displayName": "Change Scribe",
     "description": "Autogenerate concise, semantic change logs from your git history using AI",
-    "version": "0.8.0",
+    "version": "0.10.0",
     "publisher": "kwesinavilot",
     "author": {
         "name": "Kwesi Navilot",
@@ -83,7 +83,8 @@
                     "enum": [
                         "openai",
                         "azureopenai",
-                        "openai-compatible"
+                        "openai-compatible",
+                        "gemini"
                     ],
                     "default": "openai",
                     "description": "Select the LLM provider for generating changelog descriptions",
@@ -137,7 +138,7 @@
                     "description": "The Azure OpenAI Model",
                     "order": 11
                 },
-                "changeScribe.openaiCompatibleAPIKey": {
+                "changeScribe.openaiCompatibleApiKey": {
                     "type": "string",
                     "default": "",
                     "description": "Your OpenAI Compatible API Key for generating changelog descriptions (e.g. Groq, SambaNova)",
@@ -154,6 +155,18 @@
                     "default": "",
                     "description": "The OpenAI Compatible Model for generating changelog descriptions (e.g. Groq, SambaNova models)",
                     "order": 14
+                },
+                "changeScribe.geminiApiKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Your Google Gemini API key for generating changelog descriptions",
+                    "order": 15
+                },
+                "changeScribe.geminiModel": {
+                    "type": "string",
+                    "default": "",
+                    "description": "The Gemini model to use for generating changelog descriptions",
+                    "order": 16
                 }
             }
         }
@@ -189,6 +202,7 @@
     },
     "dependencies": {
         "@azure/openai": "2.0.0-beta.2",
+        "@google/generative-ai": "^0.8.0",
         "minimatch": "^10.0.1",
         "openai": "^4.68.4",
         "simple-git": "^3.22.0"

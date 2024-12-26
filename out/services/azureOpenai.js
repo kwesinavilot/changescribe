@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeAzureOpenAI = initializeAzureOpenAI;
-exports.getAzureAIGeneratedDescription = getAzureAIGeneratedDescription;
+exports.generateWithAzureOpenAI = generateWithAzureOpenAI;
 const openai_1 = require("openai");
 const vscode = require("vscode");
 let client;
@@ -22,16 +22,16 @@ function initializeAzureOpenAI() {
         const deployment = config.get('azureOpenaiDeploymentName');
         const apiVersion = config.get('azureOpenaiApiVersion');
         if (!apiKey) {
-            throw new Error('Azure OpenAI API key is not set. Please set it in the extension settings (changeScribe.azureOpenaiApiKey).');
+            throw new Error('Azure OpenAI API key is not set. Please set it in the extension settings (Change Scribe: Azure Openai Api Key).');
         }
         if (!endpoint) {
-            throw new Error('Azure OpenAI endpoint is not set. Please set it in the extension settings (changeScribe.azureOpenaiEndpoint).');
+            throw new Error('Azure OpenAI endpoint is not set. Please set it in the extension settings (Change Scribe: Azure Openai Endpoint).');
         }
         if (!deployment) {
-            throw new Error('Azure OpenAI deployment name is not set. Please set it in the extension settings (changeScribe.azureOpenaiDeploymentName).');
+            throw new Error('Azure OpenAI deployment name is not set. Please set it in the extension settings (Change Scribe: Azure Openai Deployment Name).');
         }
         if (!apiVersion) {
-            throw new Error('Azure OpenAI API version is not set. Please set it in the extension settings (changeScribe.azureOpenaiApiVersion).');
+            throw new Error('Azure OpenAI API version is not set. Please set it in the extension settings (Change Scribe: Azure Openai Api Version).');
         }
         client = new openai_1.AzureOpenAI({
             apiKey,
@@ -41,7 +41,7 @@ function initializeAzureOpenAI() {
         });
     });
 }
-function getAzureAIGeneratedDescription(commitMessage) {
+function generateWithAzureOpenAI(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         try {

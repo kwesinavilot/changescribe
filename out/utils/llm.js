@@ -11,39 +11,48 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeLLM = initializeLLM;
 exports.getAIGeneratedDescription = getAIGeneratedDescription;
+const vscode = require("vscode");
 const openai_1 = require("../services/openai");
 const azureopenai_1 = require("../services/azureopenai");
 const openaicompatible_1 = require("../services/openaicompatible");
-const vscode = require("vscode");
-let llmProvider;
+const gemini_1 = require("../services/gemini");
+let currentProvider;
 function initializeLLM() {
     return __awaiter(this, void 0, void 0, function* () {
         const config = vscode.workspace.getConfiguration('changeScribe');
-        llmProvider = config.get('llmProvider') || 'openai';
-        if (llmProvider === 'openai') {
-            yield (0, openai_1.initializeOpenAI)();
-        }
-        else if (llmProvider === 'azureopenai') {
-            yield (0, azureopenai_1.initializeAzureOpenAI)();
-        }
-        else if (llmProvider === 'openai-compatible') {
-            yield (0, openaicompatible_1.initializeOAICompatible)();
+        currentProvider = config.get('llmProvider') || 'openai';
+        switch (currentProvider) {
+            case 'openai':
+                (0, openai_1.initializeOpenAI)();
+                break;
+            case 'azureopenai':
+                (0, azureopenai_1.initializeAzureOpenAI)();
+                break;
+            case 'openai-compatible':
+                (0, openaicompatible_1.initializeOpenAICompatible)();
+                break;
+            case 'gemini':
+                (0, gemini_1.initializeGemini)();
+                break;
+            default:
+                throw new Error(`Unsupported LLM provider: ${currentProvider}`);
         }
     });
 }
 function getAIGeneratedDescription(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (llmProvider === 'openai') {
-            return yield (0, openai_1.getOpenAIGeneration)(commitMessage);
-        }
-        else if (llmProvider === 'azureopenai') {
-            return yield (0, azureopenai_1.getAzureAIGeneratedDescription)(commitMessage);
-        }
-        else if (llmProvider === 'openai-compatible') {
-            return yield (0, openaicompatible_1.getOAICompatibleGeneration)(commitMessage);
-        }
-        else {
-            throw new Error('LLM provider is not initialized or not supported.');
+        const prompt = `Generate a clear and concise changelog entry from this commit message: "${commitMessage}"`;
+        switch (currentProvider) {
+            case 'openai':
+                return (0, openai_1.generateWithOpenAI)(prompt);
+            case 'azureopenai':
+                return (0, azureopenai_1.generateWithAzureOpenAI)(prompt);
+            case 'openai-compatible':
+                return (0, openaicompatible_1.generateWithOpenAICompatible)(prompt);
+            case 'gemini':
+                return (0, gemini_1.generateWithGemini)(prompt);
+            default:
+                throw new Error(`Unsupported LLM provider: ${currentProvider}`);
         }
     });
 }
