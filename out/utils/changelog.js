@@ -20,6 +20,19 @@ const fs = require("fs/promises");
 const path = require("path");
 const llm_1 = require("./llm");
 const git_1 = require("../services/git");
+/**
+ * Generates a changelog based on the provided log results.
+ *
+ * @param logResult - The result of the log containing commit information.
+ * @returns A promise that resolves to a string containing the generated changelog.
+ *
+ * The format of the changelog is determined by the 'changelogFormat' configuration setting.
+ * It supports two formats: 'conventional' and 'keepachangelog'.
+ *
+ * The function initializes the LLM provider and uses it to generate descriptions for each commit message.
+ *
+ * The changelog includes the commit date, type of change, AI-generated description, commit hash, and author information.
+ */
 function generateChangelog(logResult) {
     return __awaiter(this, void 0, void 0, function* () {
         const config = vscode.workspace.getConfiguration('changeScribe');
@@ -71,6 +84,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 `;
 }
+/**
+ * Retrieves the content of the existing CHANGELOG.md file in the workspace.
+ *
+ * @returns {Promise<string | null>} A promise that resolves to the content of the CHANGELOG.md file as a string,
+ * or null if the file does not exist or an error occurs.
+ */
 function getExistingChangelogContent() {
     return __awaiter(this, void 0, void 0, function* () {
         const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -88,15 +107,113 @@ function getExistingChangelogContent() {
         }
     });
 }
+/**
+ * Inserts new changes into the existing changelog content.
+ * If the '## [Unreleased]' section is found, the new changes are inserted before it.
+ * Otherwise, the new changes are appended to the end of the existing content.
+ *
+ * @param existingContent - The current content of the changelog.
+ * @param newChanges - The new changes to be added to the changelog.
+ * @returns The updated changelog content with the new changes inserted.
+ */
 function insertNewChanges(existingContent, newChanges) {
-    const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
-    if (unreleasedIndex === -1) {
-        return existingContent + '\n' + newChanges;
+    var _a;
+    if (!existingContent) {
+        return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
     }
-    const beforeUnreleased = existingContent.substring(0, unreleasedIndex);
-    const afterUnreleased = existingContent.substring(unreleasedIndex);
-    return beforeUnreleased + newChanges + afterUnreleased;
+    // Try to find the Unreleased section
+    const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
+    if (unreleasedIndex !== -1) {
+        // Find the next version header or end of content
+        const nextVersionMatch = existingContent.substring(unreleasedIndex).match(/\n## \[\d+\.\d+\.\d+\]/);
+        const unreleasedEnd = nextVersionMatch
+            ? unreleasedIndex + ((_a = nextVersionMatch.index) !== null && _a !== void 0 ? _a : 0)
+            : existingContent.length;
+        // Extract existing unreleased content
+        const unreleasedContent = existingContent.substring(unreleasedIndex, unreleasedEnd);
+        // Merge existing unreleased content with new changes
+        const mergedChanges = mergeUnreleasedChanges(unreleasedContent, newChanges);
+        return existingContent.substring(0, unreleasedIndex) +
+            mergedChanges +
+            existingContent.substring(unreleasedEnd);
+    }
+    // If no Unreleased section, find first version header
+    const versionMatch = existingContent.match(/\n## \[\d+\.\d+\.\d+\]/);
+    if (versionMatch && versionMatch.index) {
+        return existingContent.substring(0, versionMatch.index) +
+            '\n## [Unreleased]\n' + newChanges +
+            existingContent.substring(versionMatch.index);
+    }
+    // If no version headers, insert after changelog header
+    if (existingContent.includes('# Changelog')) {
+        const afterHeader = existingContent.indexOf('# Changelog') + '# Changelog'.length;
+        return existingContent.substring(0, afterHeader) +
+            '\n\n## [Unreleased]\n' + newChanges +
+            existingContent.substring(afterHeader);
+    }
+    // If no changelog format at all, create new one
+    return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
 }
+/**
+ * Merges unreleased changes from two changelog strings into a single string.
+ *
+ * This function takes two strings representing existing and new changes in a changelog,
+ * parses them into predefined sections (Added, Changed, Deprecated, Removed, Fixed, Security),
+ * and then merges them into a single string under the "Unreleased" section.
+ *
+ * @param existing - The existing changelog content as a string.
+ * @param newChanges - The new changes to be merged into the existing changelog.
+ * @returns A string representing the merged changelog content under the "Unreleased" section.
+ */
+function mergeUnreleasedChanges(existing, newChanges) {
+    const sections = {
+        'Added': [],
+        'Changed': [],
+        'Deprecated': [],
+        'Removed': [],
+        'Fixed': [],
+        'Security': []
+    };
+    // Parse existing content
+    let currentSection = '';
+    existing.split('\n').forEach(line => {
+        if (line.startsWith('### ')) {
+            currentSection = line.substring(4);
+        }
+        else if (currentSection && line.startsWith('- ') && sections[currentSection]) {
+            sections[currentSection].push(line);
+        }
+    });
+    // Parse new changes
+    currentSection = '';
+    newChanges.split('\n').forEach(line => {
+        if (line.startsWith('### ')) {
+            currentSection = line.substring(4);
+        }
+        else if (currentSection && line.startsWith('- ') && sections[currentSection]) {
+            sections[currentSection].push(line);
+        }
+    });
+    // Rebuild merged content
+    let merged = '## [Unreleased]\n\n';
+    Object.entries(sections).forEach(([section, entries]) => {
+        if (entries.length > 0) {
+            merged += `### ${section}\n${entries.join('\n')}\n\n`;
+        }
+    });
+    return merged;
+}
+/**
+ * Generates and streams a changelog to the provided webview panel.
+ *
+ * This function retrieves the configuration for the maximum number of commits to include in the changelog,
+ * fetches the git log, processes the commits to categorize them, and builds the changelog content.
+ * The generated changelog is then sent to the webview panel.
+ *
+ * @param {vscode.WebviewPanel} panel - The webview panel to which the changelog will be streamed.
+ *
+ * @throws Will throw an error if there is an issue generating the changelog.
+ */
 function generateAndStreamChangelog(panel) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

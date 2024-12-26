@@ -5,6 +5,21 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2] - 2024-12-26
+### Added
+- Added merging functionality for existing Unreleased changes with new changes
+- Added proper section handling (Added, Changed, Fixed, etc.) in changelog updates
+
+### Changed
+- Improved changelog generation logic to handle missing changelog file
+- Enhanced handling of changelog sections and content merging
+- Updated changelog insertion logic to maintain proper structure
+
+### Fixed
+- Fixed changelog insertion to properly handle existing Unreleased section
+- Improved handling of changelog without version headers
+- Enhanced error handling for malformed changelog files
+
 ## [0.9.1] - 2024-12-26
 ### Added
 - Added `changescribe.updateLLMProvider` command to update the LLM provider and toggle setting visibility.
@@ -39,7 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the LLM provider selection logic so that Azure OpenAI's selection isn't done through the OpenAI service
 - Updated the docs of the various functions
 - Improved the error handling for Git operations and LLM API calls
-
 
 ## [0.7.0] - 2024-10-28
 ### Added

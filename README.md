@@ -41,12 +41,16 @@ Before using Change Scribe, you need to set up a few configuration options:
 
 1. Open VS Code settings (File > Preferences > Settings)
 2. Search for "Change Scribe"
-3. Set your preferred LLM provider (OpenAI or Azure OpenAI)
-4. Provide the necessary API credentials:
-   - For OpenAI: Set your OpenAI API key and model name
+3. Set your preferred LLM provider:
+   - openai: To use the OpenAI models
+   - azureopenai: To use the Azure OpenAI models
+   - openai-compatible: To use LLM providers that use the OpenAI package like Groq and SambaNova
+4. (Optional) Choose your preferred changelog format. Defaults to Keep a Changelog format
+5. (Optional) Set the maximum number of commits to include. Defaults to 50
+6. Provide the necessary API credentials:
+   - For OpenAI: Set your OpenAI API key, model name, and optional API endpoint
    - For Azure OpenAI: Set your API key, endpoint, deployment name, and model name
-5. (Optional) Choose your preferred changelog format
-6. (Optional) Set the maximum number of commits to include
+   - For OpenAI-compatible LLMs: Set your API key, model name, and API endpoint
 
 ## Configuring Models
 
@@ -56,7 +60,7 @@ To configure OpenAI as your LLM provider, you need to provide the following deta
 
 - **OpenAI API Key**: Your OpenAI API Key for generating changelog descriptions.
 - **OpenAI Model**: The OpenAI Model for generating changelog descriptions.
-- **OpenAI API Endpoint**: Your custom OpenAI API Endpoint (default: `https://api.openai.com/v1`).
+- **OpenAI API Endpoint (Optional)**: Your custom OpenAI API Endpoint (default: `https://api.openai.com/v1`).
 
 ### Azure OpenAI
 
@@ -70,11 +74,10 @@ To configure Azure OpenAI as your LLM provider, you need to provide the followin
 
 ### OpenAI-Compatible Providers
 
-To configure an OpenAI-compatible provider (e.g., Groq, SambaNova), you need to provide the following details in the VS Code settings:
-
-- **OpenAI Compatible API Key**: Your OpenAI Compatible API Key for generating changelog descriptions.
-- **OpenAI Compatible API Endpoint**: Your OpenAI Compatible API Endpoint.
-- **OpenAI Compatible Model**: The OpenAI Compatible Model for generating changelog descriptions.
+There are some LLM providers that use the OpenAI package, such as Groq and SambaNova. To configure these providers, you need to provide the following details in the VS Code settings:
+- **OpenAI Compatible API Key**: Your Provider's API Key for generating changelog descriptions (e.g. your Groq API Key).
+- **OpenAI Compatible API Endpoint**: Your Providers API Endpoint (e.g. your Groq API Endpoint).
+- **OpenAI Compatible Model**: The Model from the Provider that you want to use for generating changelog descriptions (e.g. your Groq Model; llama-2-7b-chat).
 
 ## Usage
 
