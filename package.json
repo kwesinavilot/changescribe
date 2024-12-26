@@ -2,7 +2,7 @@
     "name": "changescribe",
     "displayName": "Change Scribe",
     "description": "Autogenerate concise, semantic change logs from your git history using AI",
-    "version": "0.10.0",
+    "version": "0.11.1",
     "publisher": "kwesinavilot",
     "author": {
         "name": "Kwesi Navilot",

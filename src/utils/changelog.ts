@@ -3,7 +3,7 @@ import { LogResult } from 'simple-git';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { initializeLLM, getAIGeneratedDescription } from './llm';
-import { getGitLog } from '../services/git';
+import { getGitChanges, formatChangesForChangelog } from '../services/git';
 
 /**
  * Generates a changelog based on the provided log results.
@@ -99,56 +99,6 @@ export async function getExistingChangelogContent(): Promise<string | null> {
  * @param newChanges - The new changes to be added to the changelog.
  * @returns The updated changelog content with the new changes inserted.
  */
-// export function insertNewChanges(existingContent: string, newChanges: string): string {
-//     if (!existingContent) {
-//         return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
-//     }
-
-//     // Check if content starts with header, if not, add it
-//     if (!existingContent.startsWith('# Changelog')) {
-//         existingContent = getChangelogHeader() + existingContent;
-//     }
-
-//     // Try to find the Unreleased section
-//     const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
-//     if (unreleasedIndex !== -1) {
-//         // Find the next version header or end of content
-//         const nextVersionMatch = existingContent.substring(unreleasedIndex).match(/\n## \[\d+\.\d+\.\d+\]/);
-//         const unreleasedEnd = nextVersionMatch 
-//             ? unreleasedIndex + (nextVersionMatch.index ?? 0)
-//             : existingContent.length;
-        
-//         // Extract existing unreleased content
-//         const unreleasedContent = existingContent.substring(unreleasedIndex, unreleasedEnd);
-        
-//         // Merge existing unreleased content with new changes
-//         const mergedChanges = mergeUnreleasedChanges(unreleasedContent, newChanges);
-        
-//         return existingContent.substring(0, unreleasedIndex) + 
-//                mergedChanges + 
-//                existingContent.substring(unreleasedEnd);
-//     }
-
-//     // If no Unreleased section, find first version header
-//     const versionMatch = existingContent.match(/\n## \[\d+\.\d+\.\d+\]/);
-//     if (versionMatch && versionMatch.index) {
-//         return existingContent.substring(0, versionMatch.index) + 
-//                '\n## [Unreleased]\n' + newChanges + 
-//                existingContent.substring(versionMatch.index);
-//     }
-
-//     // If no version headers, insert after changelog header
-//     if (existingContent.includes('# Changelog')) {
-//         const afterHeader = existingContent.indexOf('# Changelog') + '# Changelog'.length;
-//         return existingContent.substring(0, afterHeader) + 
-//                '\n\n## [Unreleased]\n' + newChanges + 
-//                existingContent.substring(afterHeader);
-//     }
-
-//     // If no changelog format at all, create new one
-//     return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
-// }
-
 export function insertNewChanges(existingContent: string, newChanges: string): string {
     console.log('Existing content:', existingContent);
     console.log('New changes:', newChanges);
@@ -266,58 +216,23 @@ export async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
         const maxCommits = config.get<number>('maxCommits') || 50;
-        const logResult = await getGitLog(maxCommits);
+        const changelogFormat = config.get<string>('changelogFormat') || 'conventional';
+
+        // Get git changes
+        const changes = await getGitChanges(maxCommits);
+        const formattedChanges = await formatChangesForChangelog(changes, changelogFormat as 'conventional' | 'keepachangelog');
 
         // Initialize LLM
         await initializeLLM();
 
+        // Generate changelog
+        const aiDescription = await getAIGeneratedDescription(formattedChanges);
+        const newChanges = `## [Unreleased]\n\n${aiDescription}\n\n`;
+
+        // Update changelog
         let changelogContent = await getExistingChangelogContent();
         if (!changelogContent) {
             changelogContent = getChangelogHeader();
-        }
-
-        let newChanges = "## [Unreleased]\n\n";
-        // const changeTypes: { [key: string]: string[] } = {
-        //     "Added": [],
-        //     "Changed": [],
-        //     "Deprecated": [],
-        //     "Removed": [],
-        //     "Fixed": [],
-        //     "Security": []
-        // };
-
-        const changeTypes: { [key: string]: string[] } = {
-            "Feature": [],
-            "Fixed": [],
-            "Documentation": [],
-            "Style": [],
-            "Refactor": [],
-            "Test": [],
-            "Chore": [],
-            "Changed": [] // Default category
-        };
-
-        // Process commits and generate AI descriptions
-        for (const commit of logResult.all) {
-            const changeType = getChangeType(commit.message);
-            const aiDescription = await getAIGeneratedDescription(commit.message);
-            
-            if (changeTypes[changeType]) {
-                changeTypes[changeType].push(aiDescription);
-            } else {
-                changeTypes["Changed"].push(aiDescription);
-            }
-        }
-
-        // Build the new changes section
-        for (const [type, messages] of Object.entries(changeTypes)) {
-            if (messages.length > 0) {
-                newChanges += `### ${type}\n`;
-                for (const message of messages) {
-                    newChanges += `- ${message}\n`;
-                }
-                newChanges += '\n';
-            }
         }
 
         const updatedChangelog = insertNewChanges(changelogContent, newChanges);

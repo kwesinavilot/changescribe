@@ -5,7 +5,22 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.11.0] - 2024-12-30
+## [0.11.1] - 2024-12-26
+### Added
+- Added detailed git change tracking including file diffs
+- Added support for viewing staged changes in changelog generation
+
+### Fixed
+- Fixed type mismatch between LogResult and GitChanges interfaces
+- Corrected changelog generation flow to use proper git change tracking
+- Resolved issue with duplicate Unreleased sections in changelog
+
+### Changed
+- Updated git change tracking to include file diffs and staged changes
+- Improved changelog formatting to handle both conventional and keepachangelog formats
+- Enhanced git service to provide more detailed change information
+
+## [0.11.0] - 2024-12-26
 ### Added
 - Added standardized prompt system for all LLM providers
 - Added example-based prompting for better changelog generation
