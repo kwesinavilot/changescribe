@@ -2,7 +2,7 @@
     "name": "changescribe",
     "displayName": "Change Scribe",
     "description": "Autogenerate concise, semantic change logs from your git history using AI",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "publisher": "kwesinavilot",
     "author": {
         "name": "Kwesi Navilot",
@@ -39,7 +39,10 @@
         "conventional commits",
         "ai",
         "openai",
-        "azure openai"
+        "azure openai",
+        "openai compatible",
+        "groq",
+        "sambanova"
     ],
     "activationEvents": [
         "onCommand:changeScribe.generateChangelog"
@@ -79,7 +82,8 @@
                     "type": "string",
                     "enum": [
                         "openai",
-                        "azureopenai"
+                        "azureopenai",
+                        "openai-compatible"
                     ],
                     "default": "openai",
                     "description": "Select the LLM provider for generating changelog descriptions",
@@ -132,6 +136,24 @@
                     "default": "",
                     "description": "The Azure OpenAI Model",
                     "order": 11
+                },
+                "changeScribe.openaiCompatibleAPIKey": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Your OpenAI Compatible API Key for generating changelog descriptions (e.g. Groq, SambaNova)",
+                    "order": 12
+                },
+                "changeScribe.openaiCompatibleApiEndpoint": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Your OpenAI Compatible API Endpoint (e.g. Groq, SambaNova endpoint)",
+                    "order": 13
+                },
+                "changeScribe.openaiCompatibleModel": {
+                    "type": "string",
+                    "default": "",
+                    "description": "The OpenAI Compatible Model for generating changelog descriptions (e.g. Groq, SambaNova models)",
+                    "order": 14
                 }
             }
         }
@@ -146,6 +168,7 @@
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
+        "publish": "vsce package && vsce publish",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile && npm run lint",

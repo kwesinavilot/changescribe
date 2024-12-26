@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { initializeLLM, getAIGeneratedDescription } from './services/openai';
+import { initializeOpenAI, getOpenAIGeneration } from './services/openai';
+import { initializeAzureOpenAI, getAzureAIGeneratedDescription } from './services/azureopenai';
+import { initializeOAICompatible, getOAICompatibleGeneration } from './services/openaicompatible';
 import { getGitLog, commitChangelog } from './services/git';
 import { createWebviewPanel, saveChangelog } from './services/webview';
 
@@ -42,11 +44,29 @@ export function activate(context: vscode.ExtensionContext) {
                 if (!openaiConfig.apiKey) {
                     throw new Error('OpenAI configuration is incomplete. Please check your settings.');
                 }
+            } else if (llmProvider === 'openai-compatible') {
+                const openaiCompatibleConfig = {
+                    apiKey: config.get<string>('openaiCompatibleAPIKey'),
+                    endpoint: config.get<string>('openaiCompatibleApiEndpoint') || 'https://api.openai.com/v1',
+                    model: config.get<string>('openaiCompatibleModel')
+                };
+
+                if (!openaiCompatibleConfig.apiKey) {
+                    throw new Error('Configuration for an OpenAI-compatible LLM is incomplete. Please check your settings.');
+                }
             }
 
-            await initializeLLM();
+            // Initialize the LLM provider
+            if (llmProvider === 'openai') {
+                await initializeOpenAI();
+            } else if (llmProvider === 'azureopenai') {
+                await initializeAzureOpenAI();
+            } else if (llmProvider === 'openai-compatible') {
+                await initializeOAICompatible();
+            }
+
             const webviewPanel = createWebviewPanel(context);
-            
+
             webviewPanel.webview.onDidReceiveMessage(
                 async message => {
                     switch (message.type) {
@@ -102,6 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Update setting visibility
         await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
         await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
+        await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', llmProvider === 'openai-compatible');
 
         vscode.window.showInformationMessage(`Change Scribe: LLM provider is currently set to ${llmProvider}`);
     });
@@ -112,25 +133,26 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.executeCommand('changescribe.updateLLMProvider');
 }
 
-        /**
-         * Generates a changelog based on the latest commits in the Git repository and streams it to the webview.
-         * 
-         * This function gets the latest commits from the Git repository, generates descriptions for each using AI,
-         * and then builds a changelog based on the commit messages. The changelog is then streamed to the webview
-         * for display and further editing.
-         * 
-         * If an error occurs during generation, the error message is displayed in the webview and in a notification
-         * box.
-         * 
-         * @param {vscode.WebviewPanel} panel The webview panel to stream the changelog to.
-         */
+/**
+ * Generates a changelog based on the latest commits in the Git repository and streams it to the webview.
+ * 
+ * This function gets the latest commits from the Git repository, generates descriptions for each using AI,
+ * and then builds a changelog based on the commit messages. The changelog is then streamed to the webview
+ * for display and further editing.
+ * 
+ * If an error occurs during generation, the error message is displayed in the webview and in a notification
+ * box.
+ * 
+ * @param {vscode.WebviewPanel} panel The webview panel to stream the changelog to.
+ */
 async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
         const maxCommits = config.get<number>('maxCommits') || 50;
+        const llmProvider = config.get<string>('llmProvider');
 
         const logResult = await getGitLog(maxCommits);
-        
+
         let changelogContent = await getExistingChangelogContent();
         if (!changelogContent) {
             changelogContent = getChangelogHeader();
@@ -148,8 +170,16 @@ async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
 
         for (const commit of logResult.all) {
             const changeType = getChangeType(commit.message);
-            const aiGeneratedDescription = await getAIGeneratedDescription(commit.message);
-            
+            let aiGeneratedDescription;
+
+            if (llmProvider === 'openai') {
+                aiGeneratedDescription = await getOpenAIGeneration(commit.message);
+            } else if (llmProvider === 'azureopenai') {
+                aiGeneratedDescription = await getAzureAIGeneratedDescription(commit.message);
+            } else if (llmProvider === 'openai-compatible') {
+                aiGeneratedDescription = await getOAICompatibleGeneration(commit.message);
+            }
+
             if (changeTypes[changeType]) {
                 changeTypes[changeType].push(`- ${aiGeneratedDescription} (${commit.hash.substring(0, 7)})`);
             } else {
@@ -164,13 +194,13 @@ async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
         }
 
         const updatedChangelog = insertNewChanges(changelogContent, newChanges);
-        
+
         panel.webview.postMessage({ type: 'updateChangelog', content: updatedChangelog });
         panel.webview.postMessage({ type: 'generationComplete' });
     } catch (error) {
-        panel.webview.postMessage({ 
-            type: 'updateChangelog', 
-            content: `Error generating changelog: ${error instanceof Error ? error.message : String(error)}\n\n` 
+        panel.webview.postMessage({
+            type: 'updateChangelog',
+            content: `Error generating changelog: ${error instanceof Error ? error.message : String(error)}\n\n`
         });
         panel.webview.postMessage({ type: 'generationComplete' });
         vscode.window.showErrorMessage(`Error generating changelog: ${error instanceof Error ? error.message : String(error)}`);
@@ -260,4 +290,4 @@ function insertNewChanges(existingContent: string, newChanges: string): string {
     return beforeUnreleased + newChanges + afterUnreleased;
 }
 
-export function deactivate() {}
+export function deactivate() { }

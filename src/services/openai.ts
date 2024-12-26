@@ -1,68 +1,30 @@
 import { OpenAI } from 'openai';
 import * as vscode from 'vscode';
-import { initializeAzureOpenAI, getAzureAIGeneratedDescription } from './azureopenai';
 
 let openai: OpenAI;
 
 /**
- * Initializes the chosen LLM provider by setting up the API client and
- * loading any required configuration. The chosen provider is determined by
- * the 'llmProvider' setting in the 'changeScribe' configuration.
+ * Initializes the OpenAI API client with the API key and endpoint specified
+ * in the 'changeScribe' configuration.
+ * 
+ * If there's a custom endpoint, it will be used instead of the default 'https://api.openai.com/v1'.
  *
- * @throws {Error} If the chosen LLM provider is not supported or if the
- * necessary configuration options are missing.
+ * @throws {Error} If the OpenAI API key is not set in the configuration.
  * @returns {Promise<void>}
  */
-export async function initializeLLM() {
-    const config = vscode.workspace.getConfiguration('changeScribe');
-    const llmProvider = config.get<string>('llmProvider');
-
-    if (llmProvider === 'azureopenai') {
-        await initializeAzureOpenAI();
-    } else {
-        await initializeOpenAI();
-    }
-}
-
-/**
- * Initializes the OpenAI API client and loads the OpenAI API key from the
- * 'changeScribe' configuration. The 'openaiApiKey' setting must be set in the
- * extension settings before this function is called.
- *
- * @throws {Error} If the 'openaiApiKey' setting is not set.
- * @returns {Promise<void>}
- */
-async function initializeOpenAI() {
+export async function initializeOpenAI() {
     const config = vscode.workspace.getConfiguration('changeScribe');
     const apiKey = config.get<string>('openaiApiKey');
+    const endpoint = config.get<string>('openaiApiEndpoint') || 'https://api.openai.com/v1'
 
     if (!apiKey) {
         throw new Error('OpenAI API key is not set. Please set it in the extension settings.');
     }
 
-    openai = new OpenAI({ apiKey });
-}
-
-/**
- * Uses the chosen LLM provider to generate a description from a given commit
- * message. The chosen provider is determined by the 'llmProvider' setting in
- * the 'changeScribe' configuration. If the chosen provider is 'openai', the
- * description is generated using the OpenAI API. If the chosen provider is
- * 'azureopenai', the description is generated using the Azure OpenAI API.
- *
- * @param {string} commitMessage The commit message to generate a description
- * for.
- * @returns {Promise<string>} The generated description.
- */
-export async function getAIGeneratedDescription(commitMessage: string): Promise<string> {
-    const config = vscode.workspace.getConfiguration('changeScribe');
-    const llmProvider = config.get<string>('llmProvider');
-
-    if (llmProvider === 'azureopenai') {
-        return getAzureAIGeneratedDescription(commitMessage);
-    } else {
-        return getOpenAIGeneratedDescription(commitMessage);
-    }
+    openai = new OpenAI({ 
+        apiKey: apiKey,
+        baseURL: endpoint 
+    });
 }
 
 /**
@@ -73,7 +35,7 @@ export async function getAIGeneratedDescription(commitMessage: string): Promise<
  * @throws {Error} If the OpenAI API key or model is not set in the configuration.
  * @throws {Error} If the OpenAI API returns an error.
  */
-async function getOpenAIGeneratedDescription(commitMessage: string): Promise<string> {
+export async function getOpenAIGeneration(commitMessage: string): Promise<string> {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
         const model = config.get<string>('openaiModel');

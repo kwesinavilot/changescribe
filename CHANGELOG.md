@@ -5,6 +5,18 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2024-12-26
+### Added
+- Added support for LLM providers like Groq and SambaNova that use the OpenAI package for API calls
+- Enabled the use of custom OpenAI API endpoints for LLM providers
+- Added a section in the README on how to configure the models
+
+### Changed
+- Updated the LLM provider selection logic so that Azure OpenAI's selection isn't done through the OpenAI service
+- Updated the docs of the various functions
+- Improved the error handling for Git operations and LLM API calls
+
+
 ## [0.7.0] - 2024-10-28
 ### Added
 - New extension icon featuring a quill and scroll design

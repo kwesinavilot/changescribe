@@ -15,6 +15,8 @@ const vscode = require("vscode");
 const fs = require("fs/promises");
 const path = require("path");
 const openai_1 = require("./services/openai");
+const azureopenai_1 = require("./services/azureopenai");
+const openaicompatible_1 = require("./services/openaicompatible");
 const git_1 = require("./services/git");
 const webview_1 = require("./services/webview");
 /**
@@ -52,7 +54,26 @@ function activate(context) {
                     throw new Error('OpenAI configuration is incomplete. Please check your settings.');
                 }
             }
-            yield (0, openai_1.initializeLLM)();
+            else if (llmProvider === 'openai-compatible') {
+                const openaiCompatibleConfig = {
+                    apiKey: config.get('openaiCompatibleAPIKey'),
+                    endpoint: config.get('openaiCompatibleApiEndpoint') || 'https://api.openai.com/v1',
+                    model: config.get('openaiCompatibleModel')
+                };
+                if (!openaiCompatibleConfig.apiKey) {
+                    throw new Error('Configuration for an OpenAI-compatible LLM is incomplete. Please check your settings.');
+                }
+            }
+            // Initialize the LLM provider
+            if (llmProvider === 'openai') {
+                yield (0, openai_1.initializeOpenAI)();
+            }
+            else if (llmProvider === 'azureopenai') {
+                yield (0, azureopenai_1.initializeAzureOpenAI)();
+            }
+            else if (llmProvider === 'openai-compatible') {
+                yield (0, openaicompatible_1.initializeOAICompatible)();
+            }
             const webviewPanel = (0, webview_1.createWebviewPanel)(context);
             webviewPanel.webview.onDidReceiveMessage((message) => __awaiter(this, void 0, void 0, function* () {
                 switch (message.type) {
@@ -103,6 +124,7 @@ function activate(context) {
         // Update setting visibility
         yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', llmProvider === 'openai');
         yield vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', llmProvider === 'azureopenai');
+        yield vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', llmProvider === 'openai-compatible');
         vscode.window.showInformationMessage(`Change Scribe: LLM provider is currently set to ${llmProvider}`);
     }));
     context.subscriptions.push(updateLLMProviderCommand);
@@ -126,6 +148,7 @@ function generateAndStreamChangelog(panel) {
         try {
             const config = vscode.workspace.getConfiguration('changeScribe');
             const maxCommits = config.get('maxCommits') || 50;
+            const llmProvider = config.get('llmProvider');
             const logResult = yield (0, git_1.getGitLog)(maxCommits);
             let changelogContent = yield getExistingChangelogContent();
             if (!changelogContent) {
@@ -142,7 +165,16 @@ function generateAndStreamChangelog(panel) {
             };
             for (const commit of logResult.all) {
                 const changeType = getChangeType(commit.message);
-                const aiGeneratedDescription = yield (0, openai_1.getAIGeneratedDescription)(commit.message);
+                let aiGeneratedDescription;
+                if (llmProvider === 'openai') {
+                    aiGeneratedDescription = yield (0, openai_1.getOpenAIGeneration)(commit.message);
+                }
+                else if (llmProvider === 'azureopenai') {
+                    aiGeneratedDescription = yield (0, azureopenai_1.getAzureAIGeneratedDescription)(commit.message);
+                }
+                else if (llmProvider === 'openai-compatible') {
+                    aiGeneratedDescription = yield (0, openaicompatible_1.getOAICompatibleGeneration)(commit.message);
+                }
                 if (changeTypes[changeType]) {
                     changeTypes[changeType].push(`- ${aiGeneratedDescription} (${commit.hash.substring(0, 7)})`);
                 }

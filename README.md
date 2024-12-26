@@ -8,6 +8,7 @@ Change Scribe is an VS Code extension that automates the generation of semantic 
 - Use LLMs to create concise and meaningful descriptions for each change
 - Support for both OpenAI and Azure OpenAI as LLM providers
 - Support for custom OpenAI API endpoints
+- Support for LLM providers that use the OpenAI package like Groq and SambaNova
 - Smart changelog management:
   - Append to existing CHANGELOG.md
   - Preserve existing content
@@ -46,6 +47,34 @@ Before using Change Scribe, you need to set up a few configuration options:
    - For Azure OpenAI: Set your API key, endpoint, deployment name, and model name
 5. (Optional) Choose your preferred changelog format
 6. (Optional) Set the maximum number of commits to include
+
+## Configuring Models
+
+### OpenAI
+
+To configure OpenAI as your LLM provider, you need to provide the following details in the VS Code settings:
+
+- **OpenAI API Key**: Your OpenAI API Key for generating changelog descriptions.
+- **OpenAI Model**: The OpenAI Model for generating changelog descriptions.
+- **OpenAI API Endpoint**: Your custom OpenAI API Endpoint (default: `https://api.openai.com/v1`).
+
+### Azure OpenAI
+
+To configure Azure OpenAI as your LLM provider, you need to provide the following details in the VS Code settings:
+
+- **Azure OpenAI API Key**: Your Azure OpenAI API Key for generating changelog descriptions.
+- **Azure OpenAI Endpoint**: Your Azure OpenAI API Endpoint.
+- **Azure OpenAI Deployment Name**: The Azure OpenAI Deployment Name.
+- **Azure OpenAI API Version**: The Azure OpenAI API Version.
+- **Azure OpenAI Model**: The Azure OpenAI Model.
+
+### OpenAI-Compatible Providers
+
+To configure an OpenAI-compatible provider (e.g., Groq, SambaNova), you need to provide the following details in the VS Code settings:
+
+- **OpenAI Compatible API Key**: Your OpenAI Compatible API Key for generating changelog descriptions.
+- **OpenAI Compatible API Endpoint**: Your OpenAI Compatible API Endpoint.
+- **OpenAI Compatible Model**: The OpenAI Compatible Model for generating changelog descriptions.
 
 ## Usage
 
