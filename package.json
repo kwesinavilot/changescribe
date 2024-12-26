@@ -61,7 +61,7 @@
             "properties": {
                 "changeScribe.changelogFormat": {
                     "type": "string",
-                    "default": "conventional",
+                    "default": "keepachangelog",
                     "enum": [
                         "conventional",
                         "keepachangelog"

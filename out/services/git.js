@@ -93,24 +93,24 @@ function formatChangesForChangelog(changes, format) {
         if (format === 'conventional') {
             formattedChanges = `Changes to be documented:
 
-    Staged Files:
-    ${changes.staged.map(f => `- ${f.status} ${f.file}
-    ${f.diff || ''}`).join('\n')}
+        Staged Files:
+        ${changes.staged.map(f => `- ${f.status} ${f.file}
+        ${f.diff || ''}`).join('\n')}
 
-    Recent Commits:
-    ${changes.commits.map(c => `- ${c.message}
-    Files: ${c.files.map(f => f.file).join(', ')}`).join('\n')}`;
+        Recent Commits:
+        ${changes.commits.map(c => `- ${c.message}
+        Files: ${c.files.map(f => f.file).join(', ')}`).join('\n')}`;
         }
         else {
             formattedChanges = `Changes to be documented:
 
-    Modified Files:
-    ${changes.staged.map(f => `* ${f.file}
-    ${f.diff || ''}`).join('\n')}
+        Modified Files:
+        ${changes.staged.map(f => `* ${f.file}
+        ${f.diff || ''}`).join('\n')}
 
-    Recent Changes:
-    ${changes.commits.map(c => `* ${c.message}
-    Changed: ${c.files.map(f => f.file).join(', ')}`).join('\n')}`;
+        Recent Changes:
+        ${changes.commits.map(c => `* ${c.message}
+        Changed: ${c.files.map(f => f.file).join(', ')}`).join('\n')}`;
         }
         return formattedChanges;
     });

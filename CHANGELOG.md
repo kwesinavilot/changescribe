@@ -4,6 +4,21 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.11.2] - 2024-12-30
+### Added
+- Added format-specific section mapping for both changelog styles
+- Added better changelog structure preservation during updates
+
+### Changed
+- Updated changelog generation to handle both Conventional and Keep a Changelog formats consistently
+- Improved section handling in changelog merging process
+- Enhanced git change tracking to provide better context for LLM processing
+- Refined prompt system to generate more semantic descriptions
+
+### Fixed
+- Fixed section mapping between Conventional and Keep a Changelog formats
+- Resolved issues with duplicate sections in changelog merging
+- Corrected handling of existing changelog content
 
 ## [0.11.1] - 2024-12-26
 ### Added

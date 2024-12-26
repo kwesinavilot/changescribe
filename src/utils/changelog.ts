@@ -1,59 +1,13 @@
 import * as vscode from 'vscode';
-import { LogResult } from 'simple-git';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { initializeLLM, getAIGeneratedDescription } from './llm';
 import { getGitChanges, formatChangesForChangelog } from '../services/git';
 
-/**
- * Generates a changelog based on the provided log results.
- * 
- * @param logResult - The result of the log containing commit information.
- * @returns A promise that resolves to a string containing the generated changelog.
- * 
- * The format of the changelog is determined by the 'changelogFormat' configuration setting.
- * It supports two formats: 'conventional' and 'keepachangelog'.
- * 
- * The function initializes the LLM provider and uses it to generate descriptions for each commit message.
- * 
- * The changelog includes the commit date, type of change, AI-generated description, commit hash, and author information.
- */
-export async function generateChangelog(logResult: LogResult): Promise<string> {
-    const config = vscode.workspace.getConfiguration('changeScribe');
-    const changelogFormat = config.get<string>('changelogFormat') || 'conventional';
+type ChangelogFormat = 'conventional' | 'keepachangelog';
 
-    // Initialize the LLM provider
-    await initializeLLM();
-
-    let changelog = getChangelogHeader();
-
-    for (const commit of logResult.all) {
-        const changeType = getChangeType(commit.message);
-        const aiGeneratedDescription = await getAIGeneratedDescription(commit.message);
-
-        if (changelogFormat === 'conventional') {
-            changelog += `## ${commit.date}: ${changeType}\n\n`;
-            changelog += `${aiGeneratedDescription}\n\n`;
-            changelog += `Commit: ${commit.hash}\n`;
-            changelog += `Author: ${commit.author_name} <${commit.author_email}>\n\n`;
-        } else if (changelogFormat === 'keepachangelog') {
-            changelog += `### ${changeType}\n`;
-            changelog += `- ${aiGeneratedDescription} (${commit.hash})\n\n`;
-        }
-    }
-
-    return changelog;
-}
-
-export function getChangeType(commitMessage: string): string {
-    if (commitMessage.startsWith('feat:')) return 'Feature';
-    if (commitMessage.startsWith('fix:')) return 'Fixed';
-    if (commitMessage.startsWith('docs:')) return 'Documentation';
-    if (commitMessage.startsWith('style:')) return 'Style';
-    if (commitMessage.startsWith('refactor:')) return 'Refactor';
-    if (commitMessage.startsWith('test:')) return 'Test';
-    if (commitMessage.startsWith('chore:')) return 'Chore';
-    return 'Changed';
+interface SectionMapping {
+    [key: string]: string[];
 }
 
 export function getChangelogHeader(): string {
@@ -99,7 +53,7 @@ export async function getExistingChangelogContent(): Promise<string | null> {
  * @param newChanges - The new changes to be added to the changelog.
  * @returns The updated changelog content with the new changes inserted.
  */
-export function insertNewChanges(existingContent: string, newChanges: string): string {
+export function insertNewChanges(existingContent: string, newChanges: string, format: ChangelogFormat): string {
     console.log('Existing content:', existingContent);
     console.log('New changes:', newChanges);
 
@@ -135,7 +89,7 @@ export function insertNewChanges(existingContent: string, newChanges: string): s
         const cleanedNewChanges = newChanges.replace('## [Unreleased]\n', '');
         
         // Merge existing unreleased content with new changes
-        const mergedChanges = mergeUnreleasedChanges(unreleasedContent, cleanedNewChanges);
+        const mergedChanges = mergeUnreleasedChanges(unreleasedContent, cleanedNewChanges, format);
         
         return existingContent.substring(0, unreleasedIndex) + 
                mergedChanges + 
@@ -160,18 +114,11 @@ export function insertNewChanges(existingContent: string, newChanges: string): s
  * @param newChanges - The new changes to be merged into the existing changelog.
  * @returns A string representing the merged changelog content under the "Unreleased" section.
  */
-function mergeUnreleasedChanges(existing: string, newChanges: string): string {
-    const sections: { [key: string]: string[] } = {
-        'Added': [],
-        'Changed': [],
-        'Deprecated': [],
-        'Removed': [],
-        'Fixed': [],
-        'Security': []
-    };
+function mergeUnreleasedChanges(existing: string, newChanges: string, format: ChangelogFormat): string {
+    const sections = getSectionsByFormat(format);
+    let currentSection = '';
 
     // Parse existing content
-    let currentSection = '';
     existing.split('\n').forEach(line => {
         if (line.startsWith('### ')) {
             currentSection = line.substring(4);
@@ -190,7 +137,7 @@ function mergeUnreleasedChanges(existing: string, newChanges: string): string {
         }
     });
 
-    // Rebuild merged content
+    // Build merged content
     let merged = '## [Unreleased]\n\n';
     Object.entries(sections).forEach(([section, entries]) => {
         if (entries.length > 0) {
@@ -199,6 +146,25 @@ function mergeUnreleasedChanges(existing: string, newChanges: string): string {
     });
 
     return merged;
+}
+
+function getSectionsByFormat(format: ChangelogFormat): SectionMapping {
+    return format === 'conventional' ? {
+        'Features': [],
+        'Bug Fixes': [],
+        'Documentation': [],
+        'Styles': [],
+        'Refactoring': [],
+        'Tests': [],
+        'Chores': []
+    } : {
+        'Added': [],
+        'Changed': [],
+        'Deprecated': [],
+        'Removed': [],
+        'Fixed': [],
+        'Security': []
+    };
 }
 
 /**
@@ -215,8 +181,8 @@ function mergeUnreleasedChanges(existing: string, newChanges: string): string {
 export async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
-        const maxCommits = config.get<number>('maxCommits') || 50;
-        const changelogFormat = config.get<string>('changelogFormat') || 'conventional';
+        const maxCommits = config.get<number>('maxCommits') || 3;
+        const changelogFormat = config.get<string>('changelogFormat') || 'keepachangelog';
 
         // Get git changes
         const changes = await getGitChanges(maxCommits);
@@ -235,7 +201,7 @@ export async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
             changelogContent = getChangelogHeader();
         }
 
-        const updatedChangelog = insertNewChanges(changelogContent, newChanges);
+        const updatedChangelog = insertNewChanges(changelogContent, newChanges, changelogFormat as ChangelogFormat);
         panel.webview.postMessage({ type: 'updateChangelog', content: updatedChangelog });
         panel.webview.postMessage({ type: 'generationComplete' });
     } catch (error) {
