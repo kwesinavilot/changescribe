@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import * as vscode from 'vscode';
+import { CHANGELOG_SYSTEM_PROMPT, CHANGELOG_USER_PROMPT } from '../prompts';
 
 let openai: OpenAI;
 
@@ -38,20 +39,16 @@ export async function initializeOpenAI() {
 export async function generateWithOpenAI(commitMessage: string): Promise<string> {
     try {
         const config = vscode.workspace.getConfiguration('changeScribe');
-        const model = config.get<string>('openaiModel');
-
-        if (!model) {
-            throw new Error('OpenAI model is not set in the configuration. Please set it in the extension settings.');
-        }
+        const model = config.get<string>('openaiModel') || 'gpt-3.5-turbo';
 
         const response = await openai.chat.completions.create({
             model: model,
             messages: [
-                { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
-                { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }
+                { role: "system", content: CHANGELOG_SYSTEM_PROMPT },
+                { role: "user", content: CHANGELOG_USER_PROMPT(commitMessage) }
             ],
-            temperature: 0.1,
-            max_tokens: 150,
+            temperature: 0.4,
+            max_tokens: 500,
         });
 
         return response.choices[0].message.content || 'No description generated.';

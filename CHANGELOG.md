@@ -5,6 +5,21 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2024-12-30
+### Added
+- Added standardized prompt system for all LLM providers
+- Added example-based prompting for better changelog generation
+
+### Changed
+- Increased model temperature to 0.4 for more natural language generation
+- Increased max_tokens to 500 for more detailed descriptions
+- Updated prompt engineering to focus on semantic understanding
+- Enhanced commit message processing for better context retention
+
+### Improved
+- Improved changelog generation quality through better prompting
+- Enhanced consistency across different LLM providers
+
 ## [0.10.0] - 2024-12-26
 ### Added
 - Added support for Google's Gemini models as an LLM provider

@@ -13,6 +13,7 @@ exports.initializeOpenAI = initializeOpenAI;
 exports.generateWithOpenAI = generateWithOpenAI;
 const openai_1 = require("openai");
 const vscode = require("vscode");
+const prompts_1 = require("../prompts");
 let openai;
 /**
  * Initializes the OpenAI API client with the API key and endpoint specified
@@ -49,18 +50,15 @@ function generateWithOpenAI(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const config = vscode.workspace.getConfiguration('changeScribe');
-            const model = config.get('openaiModel');
-            if (!model) {
-                throw new Error('OpenAI model is not set in the configuration. Please set it in the extension settings.');
-            }
+            const model = config.get('openaiModel') || 'gpt-3.5-turbo';
             const response = yield openai.chat.completions.create({
                 model: model,
                 messages: [
-                    { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
-                    { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }
+                    { role: "system", content: prompts_1.CHANGELOG_SYSTEM_PROMPT },
+                    { role: "user", content: (0, prompts_1.CHANGELOG_USER_PROMPT)(commitMessage) }
                 ],
-                temperature: 0.1,
-                max_tokens: 150,
+                temperature: 0.4,
+                max_tokens: 500,
             });
             return response.choices[0].message.content || 'No description generated.';
         }

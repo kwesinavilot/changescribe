@@ -44,9 +44,6 @@
         "groq",
         "sambanova"
     ],
-    "activationEvents": [
-        "onCommand:changeScribe.generateChangelog"
-    ],
     "main": "./out/extension.js",
     "contributes": {
         "commands": [

@@ -13,6 +13,7 @@ exports.initializeOpenAICompatible = initializeOpenAICompatible;
 exports.generateWithOpenAICompatible = generateWithOpenAICompatible;
 const vscode = require("vscode");
 const openai_1 = require("openai");
+const prompts_1 = require("../prompts");
 let openaiCompatible;
 /**
  * Initializes the OpenAI-compatible API client with the API key and endpoint specified
@@ -57,11 +58,11 @@ function generateWithOpenAICompatible(commitMessage) {
             const response = yield openaiCompatible.chat.completions.create({
                 model: model,
                 messages: [
-                    { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
-                    { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }
+                    { role: "system", content: prompts_1.CHANGELOG_SYSTEM_PROMPT },
+                    { role: "user", content: (0, prompts_1.CHANGELOG_USER_PROMPT)(commitMessage) }
                 ],
-                temperature: 0.1,
-                max_tokens: 150,
+                temperature: 0.4,
+                max_tokens: 500,
             });
             return response.choices[0].message.content || 'No description generated.';
         }

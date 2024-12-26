@@ -13,6 +13,7 @@ exports.initializeAzureOpenAI = initializeAzureOpenAI;
 exports.generateWithAzureOpenAI = generateWithAzureOpenAI;
 const openai_1 = require("openai");
 const vscode = require("vscode");
+const prompts_1 = require("../prompts");
 let client;
 function initializeAzureOpenAI() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -49,21 +50,17 @@ function generateWithAzureOpenAI(commitMessage) {
                 throw new Error('Azure OpenAI client is not initialized. Please initialize it first.');
             }
             const config = vscode.workspace.getConfiguration('changeScribe');
-            const azureOpenAIModel = config.get('azureOpenaiModel');
-            // Ensure the model is set in the configuration
-            if (!azureOpenAIModel) {
-                throw new Error('Azure OpenAI model is not set in the configuration. Please set it in the extension settings.');
-            }
+            const model = (_a = config.get('azureOpenaiModel')) !== null && _a !== void 0 ? _a : 'gpt-35-turbo';
             const response = yield client.chat.completions.create({
-                model: azureOpenAIModel,
+                model: model,
                 messages: [
-                    { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
-                    { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }
+                    { role: "system", content: prompts_1.CHANGELOG_SYSTEM_PROMPT },
+                    { role: "user", content: (0, prompts_1.CHANGELOG_USER_PROMPT)(commitMessage) }
                 ],
-                temperature: 0.1,
-                max_tokens: 150
+                temperature: 0.4,
+                max_tokens: 500
             });
-            return ((_a = response.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) || 'No description generated.';
+            return response.choices[0].message.content || 'No description generated.';
         }
         catch (error) {
             console.error('Error generating AI description:', error);

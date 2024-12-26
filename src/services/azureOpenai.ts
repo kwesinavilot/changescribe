@@ -1,5 +1,6 @@
 import { AzureOpenAI } from "openai";
 import * as vscode from 'vscode';
+import { CHANGELOG_SYSTEM_PROMPT, CHANGELOG_USER_PROMPT } from '../prompts';
 
 let client: AzureOpenAI;
 
@@ -39,26 +40,19 @@ export async function generateWithAzureOpenAI(commitMessage: string): Promise<st
         }
 
         const config = vscode.workspace.getConfiguration('changeScribe');
-        const azureOpenAIModel = config.get<string>('azureOpenaiModel');
+        const model = config.get<string>('azureOpenaiModel') ?? 'gpt-35-turbo';
 
-        // Ensure the model is set in the configuration
-        if (!azureOpenAIModel) {
-            throw new Error('Azure OpenAI model is not set in the configuration. Please set it in the extension settings.');
-        }
+        const response = await client.chat.completions.create({
+            model: model,
+            messages: [
+                { role: "system", content: CHANGELOG_SYSTEM_PROMPT },
+                { role: "user", content: CHANGELOG_USER_PROMPT(commitMessage) }
+            ],
+            temperature: 0.4,
+            max_tokens: 500
+        });
 
-        const response = await client.chat.completions.create(
-            {
-                model: azureOpenAIModel,
-                messages: [
-                    { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
-                    { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }
-                ],
-                temperature: 0.1,
-                max_tokens: 150
-            }
-        );
-
-        return response.choices[0].message?.content || 'No description generated.';
+        return response.choices[0].message.content || 'No description generated.';
     } catch (error) {
         console.error('Error generating AI description:', error);
 

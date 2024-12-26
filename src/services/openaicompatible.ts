@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { OpenAI } from 'openai';
+import { CHANGELOG_SYSTEM_PROMPT, CHANGELOG_USER_PROMPT } from '../prompts';
 
 let openaiCompatible: OpenAI;
 
@@ -49,11 +50,11 @@ export async function generateWithOpenAICompatible(commitMessage: string): Promi
         const response = await openaiCompatible.chat.completions.create({
             model: model,
             messages: [
-                { role: "system", content: "You are a helpful assistant that generates concise and meaningful changelog entries based on commit messages." },
-                { role: "user", content: `Generate a changelog entry for the following commit message: "${commitMessage}"` }
+                { role: "system", content: CHANGELOG_SYSTEM_PROMPT },
+                { role: "user", content: CHANGELOG_USER_PROMPT(commitMessage) }
             ],
-            temperature: 0.1,
-            max_tokens: 150,
+            temperature: 0.4,
+            max_tokens: 500,
         });
 
         return response.choices[0].message.content || 'No description generated.';

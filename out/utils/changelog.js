@@ -116,43 +116,86 @@ function getExistingChangelogContent() {
  * @param newChanges - The new changes to be added to the changelog.
  * @returns The updated changelog content with the new changes inserted.
  */
+// export function insertNewChanges(existingContent: string, newChanges: string): string {
+//     if (!existingContent) {
+//         return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
+//     }
+//     // Check if content starts with header, if not, add it
+//     if (!existingContent.startsWith('# Changelog')) {
+//         existingContent = getChangelogHeader() + existingContent;
+//     }
+//     // Try to find the Unreleased section
+//     const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
+//     if (unreleasedIndex !== -1) {
+//         // Find the next version header or end of content
+//         const nextVersionMatch = existingContent.substring(unreleasedIndex).match(/\n## \[\d+\.\d+\.\d+\]/);
+//         const unreleasedEnd = nextVersionMatch 
+//             ? unreleasedIndex + (nextVersionMatch.index ?? 0)
+//             : existingContent.length;
+//         // Extract existing unreleased content
+//         const unreleasedContent = existingContent.substring(unreleasedIndex, unreleasedEnd);
+//         // Merge existing unreleased content with new changes
+//         const mergedChanges = mergeUnreleasedChanges(unreleasedContent, newChanges);
+//         return existingContent.substring(0, unreleasedIndex) + 
+//                mergedChanges + 
+//                existingContent.substring(unreleasedEnd);
+//     }
+//     // If no Unreleased section, find first version header
+//     const versionMatch = existingContent.match(/\n## \[\d+\.\d+\.\d+\]/);
+//     if (versionMatch && versionMatch.index) {
+//         return existingContent.substring(0, versionMatch.index) + 
+//                '\n## [Unreleased]\n' + newChanges + 
+//                existingContent.substring(versionMatch.index);
+//     }
+//     // If no version headers, insert after changelog header
+//     if (existingContent.includes('# Changelog')) {
+//         const afterHeader = existingContent.indexOf('# Changelog') + '# Changelog'.length;
+//         return existingContent.substring(0, afterHeader) + 
+//                '\n\n## [Unreleased]\n' + newChanges + 
+//                existingContent.substring(afterHeader);
+//     }
+//     // If no changelog format at all, create new one
+//     return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
+// }
 function insertNewChanges(existingContent, newChanges) {
     var _a;
+    console.log('Existing content:', existingContent);
+    console.log('New changes:', newChanges);
+    // If no content, create new changelog
     if (!existingContent) {
         return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
     }
+    // Check if content starts with header, if not, add it
+    if (!existingContent.startsWith('# Changelog')) {
+        existingContent = getChangelogHeader() + existingContent;
+    }
     // Try to find the Unreleased section
     const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
+    console.log('Unreleased index:', unreleasedIndex);
     if (unreleasedIndex !== -1) {
         // Find the next version header or end of content
         const nextVersionMatch = existingContent.substring(unreleasedIndex).match(/\n## \[\d+\.\d+\.\d+\]/);
+        console.log('Next version match:', nextVersionMatch);
         const unreleasedEnd = nextVersionMatch
             ? unreleasedIndex + ((_a = nextVersionMatch.index) !== null && _a !== void 0 ? _a : 0)
             : existingContent.length;
+        console.log('Unreleased end:', unreleasedEnd);
         // Extract existing unreleased content
         const unreleasedContent = existingContent.substring(unreleasedIndex, unreleasedEnd);
+        console.log('Unreleased content:', unreleasedContent);
+        // Remove any duplicate Unreleased sections from new changes
+        const cleanedNewChanges = newChanges.replace('## [Unreleased]\n', '');
         // Merge existing unreleased content with new changes
-        const mergedChanges = mergeUnreleasedChanges(unreleasedContent, newChanges);
+        const mergedChanges = mergeUnreleasedChanges(unreleasedContent, cleanedNewChanges);
         return existingContent.substring(0, unreleasedIndex) +
             mergedChanges +
             existingContent.substring(unreleasedEnd);
     }
-    // If no Unreleased section, find first version header
-    const versionMatch = existingContent.match(/\n## \[\d+\.\d+\.\d+\]/);
-    if (versionMatch && versionMatch.index) {
-        return existingContent.substring(0, versionMatch.index) +
-            '\n## [Unreleased]\n' + newChanges +
-            existingContent.substring(versionMatch.index);
-    }
-    // If no version headers, insert after changelog header
-    if (existingContent.includes('# Changelog')) {
-        const afterHeader = existingContent.indexOf('# Changelog') + '# Changelog'.length;
-        return existingContent.substring(0, afterHeader) +
-            '\n\n## [Unreleased]\n' + newChanges +
-            existingContent.substring(afterHeader);
-    }
-    // If no changelog format at all, create new one
-    return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
+    // If no Unreleased section, add it after header
+    const headerEnd = existingContent.indexOf('\n\n');
+    return existingContent.substring(0, headerEnd) +
+        '\n\n## [Unreleased]\n' + newChanges +
+        existingContent.substring(headerEnd);
 }
 /**
  * Merges unreleased changes from two changelog strings into a single string.
@@ -220,6 +263,8 @@ function generateAndStreamChangelog(panel) {
             const config = vscode.workspace.getConfiguration('changeScribe');
             const maxCommits = config.get('maxCommits') || 50;
             const logResult = yield (0, git_1.getGitLog)(maxCommits);
+            // Initialize LLM
+            yield (0, llm_1.initializeLLM)();
             let changelogContent = yield getExistingChangelogContent();
             if (!changelogContent) {
                 changelogContent = getChangelogHeader();
@@ -243,15 +288,15 @@ function generateAndStreamChangelog(panel) {
                 "Chore": [],
                 "Changed": [] // Default category
             };
-            // Process commits and generate changelog entries
+            // Process commits and generate AI descriptions
             for (const commit of logResult.all) {
                 const changeType = getChangeType(commit.message);
+                const aiDescription = yield (0, llm_1.getAIGeneratedDescription)(commit.message);
                 if (changeTypes[changeType]) {
-                    changeTypes[changeType].push(commit.message);
+                    changeTypes[changeType].push(aiDescription);
                 }
                 else {
-                    // Handle unexpected change types
-                    changeTypes["Changed"].push(commit.message);
+                    changeTypes["Changed"].push(aiDescription);
                 }
             }
             // Build the new changes section

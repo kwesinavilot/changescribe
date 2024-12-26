@@ -13,6 +13,7 @@ exports.initializeGemini = initializeGemini;
 exports.generateWithGemini = generateWithGemini;
 const generative_ai_1 = require("@google/generative-ai");
 const vscode = require("vscode");
+const prompts_1 = require("../prompts");
 let genAI;
 function initializeGemini() {
     const config = vscode.workspace.getConfiguration('changeScribe');
@@ -22,12 +23,14 @@ function initializeGemini() {
     }
     genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
 }
-function generateWithGemini(prompt) {
+function generateWithGemini(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
         const config = vscode.workspace.getConfiguration('changeScribe');
         const modelName = config.get('geminiModel') || 'gemini-1.5-flash';
         const model = genAI.getGenerativeModel({ model: modelName });
         try {
+            // Gemini uses a different format, combine system and user prompts
+            const prompt = `${prompts_1.CHANGELOG_SYSTEM_PROMPT}\n\n${(0, prompts_1.CHANGELOG_USER_PROMPT)(commitMessage)}`;
             const result = yield model.generateContent(prompt);
             return result.response.text();
         }
