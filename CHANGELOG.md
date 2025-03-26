@@ -4,6 +4,18 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.12.0] - 2025-03-26
+### Added
+- Added sidebar view container with Change Scribe icon
+- Added tree view provider for quick access to extension features
+- Added dedicated provider structure in `providers/changelogTreeProvider.ts`
+
+### Changed
+- Improved extension accessibility through VS Code's activity bar
+- Reorganized code structure for better maintainability
+- Enhanced user interface with quick action buttons in sidebar
+
 ## [0.11.2] - 2024-12-30
 ### Added
 - Added format-specific section mapping for both changelog styles

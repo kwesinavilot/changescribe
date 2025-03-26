@@ -71,7 +71,7 @@
                 },
                 "changeScribe.maxCommits": {
                     "type": "number",
-                    "default": 10,
+                    "default": 3,
                     "description": "The maximum number of commits to include in the changelog",
                     "order": 2
                 },
@@ -166,7 +166,33 @@
                     "order": 16
                 }
             }
-        }
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "changescribe-sidebar",
+                    "title": "Change Scribe",
+                    "icon": "media/sidebar-icon.svg"
+                }
+            ]
+        },
+        "views": {
+            "changescribe-sidebar": [
+                {
+                    "type": "tree",
+                    "id": "changeScribeChangelog",
+                    "name": "Change Scribe",
+                    "icon": "media/icon.svg",
+                    "contextualTitle": "Change Scribe"
+                }
+            ]
+        },
+        "viewsWelcome": [
+            {
+                "view": "changeScribeChangelog",
+                "contents": "No changelog found. [Generate Changelog](command:changeScribe.generateChangelog)"
+            }
+        ]
     },
     "menus": {
         "commandPalette": [
