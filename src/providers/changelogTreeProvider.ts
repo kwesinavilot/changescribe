@@ -10,28 +10,50 @@ export class ChangelogItem extends vscode.TreeItem {
         super(label, collapsibleState);
         this.tooltip = tooltip;
         this.command = command;
-        this.iconPath = new vscode.ThemeIcon('note'); // Add an icon
     }
 }
 
-export class ChangelogTreeProvider implements vscode.TreeDataProvider<ChangelogItem> {
-    private _onDidChangeTreeData = new vscode.EventEmitter<ChangelogItem | undefined>();
+export class ChangelogTreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+    private _onDidChangeTreeData = new vscode.EventEmitter<vscode.TreeItem | undefined>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+    
+    private _headerItem: vscode.TreeItem | null = null;
+
+    constructor(private context: vscode.ExtensionContext) {
+        this.initializeHeader();
+    }
+
+    private initializeHeader() {
+        const headerTreeItem = new vscode.TreeItem('Change Scribe');
+        headerTreeItem.iconPath = {
+            light: vscode.Uri.file(this.context.asAbsolutePath('resources/light-icon.svg')),
+            dark: vscode.Uri.file(this.context.asAbsolutePath('resources/dark-icon.svg'))
+        };
+        this._headerItem = headerTreeItem;
+    }
+
+    setHeaderItem(item: vscode.TreeItem) {
+        this._headerItem = item;
+        this.refresh();
+    }
 
     refresh(): void {
         this._onDidChangeTreeData.fire(undefined);
     }
 
-    getTreeItem(element: ChangelogItem): vscode.TreeItem {
+    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
         return element;
     }
 
-    getChildren(element?: ChangelogItem): Thenable<ChangelogItem[]> {
-        if (element) {
-            return Promise.resolve([]); // Return empty for child items
+    getChildren(): Thenable<vscode.TreeItem[]> {
+        const items: vscode.TreeItem[] = [];
+
+        if (this._headerItem) {
+            this._headerItem.contextValue = 'changeScribeHeader';
+            items.push(this._headerItem);
         }
 
-        return Promise.resolve([
+        items.push(
             new ChangelogItem(
                 'Generate Changelog',
                 'Generate a new changelog',
@@ -39,7 +61,7 @@ export class ChangelogTreeProvider implements vscode.TreeDataProvider<ChangelogI
                 {
                     command: 'changeScribe.generateChangelog',
                     title: 'Generate Changelog',
-                    arguments: []
+                    tooltip: 'Generate a new changelog'
                 }
             ),
             new ChangelogItem(
@@ -49,9 +71,11 @@ export class ChangelogTreeProvider implements vscode.TreeDataProvider<ChangelogI
                 {
                     command: 'changescribe.updateLLMProvider',
                     title: 'Change LLM Provider',
-                    arguments: []
+                    tooltip: 'Update the LLM provider settings'
                 }
             )
-        ]);
+        );
+
+        return Promise.resolve(items);
     }
 }

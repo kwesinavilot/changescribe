@@ -27,7 +27,8 @@ export function registerCommands(context: vscode.ExtensionContext) {
                                 cancellable: false
                             }, async (progress) => {
                                 progress.report({ message: 'Initializing changelog generation...' });
-                                await generateAndStreamChangelog(webviewPanel);
+                                await generateAndStreamChangelog(webviewPanel, progress);
+                                vscode.window.showInformationMessage('Changelog generated successfully!');
                             });
                             break;
                         case 'save':

@@ -1,11 +1,17 @@
 import * as vscode from 'vscode';
 import { initializeOpenAI, generateWithOpenAI } from '../services/openai';
-import { initializeAzureOpenAI, generateWithAzureOpenAI } from '../services/azureopenai';
+import { initializeAzureOpenAI, generateWithAzureOpenAI } from '../services/azureOpenai';
 import { initializeOpenAICompatible, generateWithOpenAICompatible } from '../services/openaicompatible';
 import { initializeGemini, generateWithGemini } from '../services/gemini';
 
 let currentProvider: string;
 
+/**
+ * Initializes the currently selected LLM provider.
+ *
+ * @throws {Error} If the configured LLM provider is not supported.
+ * @returns {Promise<void>}
+ */
 export async function initializeLLM(): Promise<void> {
     const config = vscode.workspace.getConfiguration('changeScribe');
     currentProvider = config.get<string>('llmProvider') || 'openai';
@@ -28,6 +34,13 @@ export async function initializeLLM(): Promise<void> {
     }
 }
 
+/**
+ * Uses the configured LLM provider to generate a clear and concise changelog entry from a given commit message.
+ *
+ * @param {string} commitMessage The commit message to generate a description for.
+ * @returns {Promise<string>} The generated description.
+ * @throws {Error} If the LLM provider is not supported.
+ */
 export async function getAIGeneratedDescription(commitMessage: string): Promise<string> {
     const prompt = `Generate a clear and concise changelog entry from this commit message: "${commitMessage}"`;
 

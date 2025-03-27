@@ -168,24 +168,31 @@ function getSectionsByFormat(format) {
  * The generated changelog is then sent to the webview panel.
  *
  * @param {vscode.WebviewPanel} panel - The webview panel to which the changelog will be streamed.
+ * @param {vscode.Progress<{ message?: string; increment?: number }>} [progress] - Optional progress reporter.
  *
  * @throws Will throw an error if there is an issue generating the changelog.
  */
-function generateAndStreamChangelog(panel) {
+function generateAndStreamChangelog(panel, progress) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            // Update progress for configuration
+            progress === null || progress === void 0 ? void 0 : progress.report({ message: 'Reading configuration...' });
             const config = vscode.workspace.getConfiguration('changeScribe');
             const maxCommits = config.get('maxCommits') || 3;
             const changelogFormat = config.get('changelogFormat') || 'keepachangelog';
-            // Get git changes
+            // Update progress for git changes
+            progress === null || progress === void 0 ? void 0 : progress.report({ message: 'Fetching git changes...' });
             const changes = yield (0, git_1.getGitChanges)(maxCommits);
             const formattedChanges = yield (0, git_1.formatChangesForChangelog)(changes, changelogFormat);
-            // Initialize LLM
+            // Update progress for LLM initialization
+            progress === null || progress === void 0 ? void 0 : progress.report({ message: 'Initializing AI model...' });
             yield (0, llm_1.initializeLLM)();
-            // Generate changelog
+            // Update progress for changelog generation
+            progress === null || progress === void 0 ? void 0 : progress.report({ message: 'Generating changelog content...' });
             const aiDescription = yield (0, llm_1.getAIGeneratedDescription)(formattedChanges);
             const newChanges = `## [Unreleased]\n\n${aiDescription}\n\n`;
-            // Update changelog
+            // Update progress for final steps
+            progress === null || progress === void 0 ? void 0 : progress.report({ message: 'Updating changelog...' });
             let changelogContent = yield getExistingChangelogContent();
             if (!changelogContent) {
                 changelogContent = getChangelogHeader();

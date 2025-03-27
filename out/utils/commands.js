@@ -34,7 +34,8 @@ function registerCommands(context) {
                             cancellable: false
                         }, (progress) => __awaiter(this, void 0, void 0, function* () {
                             progress.report({ message: 'Initializing changelog generation...' });
-                            yield (0, changelog_1.generateAndStreamChangelog)(webviewPanel);
+                            yield (0, changelog_1.generateAndStreamChangelog)(webviewPanel, progress);
+                            vscode.window.showInformationMessage('Changelog generated successfully!');
                         }));
                         break;
                     case 'save':

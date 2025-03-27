@@ -13,10 +13,16 @@ exports.initializeLLM = initializeLLM;
 exports.getAIGeneratedDescription = getAIGeneratedDescription;
 const vscode = require("vscode");
 const openai_1 = require("../services/openai");
-const azureopenai_1 = require("../services/azureopenai");
+const azureOpenai_1 = require("../services/azureOpenai");
 const openaicompatible_1 = require("../services/openaicompatible");
 const gemini_1 = require("../services/gemini");
 let currentProvider;
+/**
+ * Initializes the currently selected LLM provider.
+ *
+ * @throws {Error} If the configured LLM provider is not supported.
+ * @returns {Promise<void>}
+ */
 function initializeLLM() {
     return __awaiter(this, void 0, void 0, function* () {
         const config = vscode.workspace.getConfiguration('changeScribe');
@@ -26,7 +32,7 @@ function initializeLLM() {
                 (0, openai_1.initializeOpenAI)();
                 break;
             case 'azureopenai':
-                (0, azureopenai_1.initializeAzureOpenAI)();
+                (0, azureOpenai_1.initializeAzureOpenAI)();
                 break;
             case 'openai-compatible':
                 (0, openaicompatible_1.initializeOpenAICompatible)();
@@ -39,6 +45,13 @@ function initializeLLM() {
         }
     });
 }
+/**
+ * Uses the configured LLM provider to generate a clear and concise changelog entry from a given commit message.
+ *
+ * @param {string} commitMessage The commit message to generate a description for.
+ * @returns {Promise<string>} The generated description.
+ * @throws {Error} If the LLM provider is not supported.
+ */
 function getAIGeneratedDescription(commitMessage) {
     return __awaiter(this, void 0, void 0, function* () {
         const prompt = `Generate a clear and concise changelog entry from this commit message: "${commitMessage}"`;
@@ -46,7 +59,7 @@ function getAIGeneratedDescription(commitMessage) {
             case 'openai':
                 return (0, openai_1.generateWithOpenAI)(prompt);
             case 'azureopenai':
-                return (0, azureopenai_1.generateWithAzureOpenAI)(prompt);
+                return (0, azureOpenai_1.generateWithAzureOpenAI)(prompt);
             case 'openai-compatible':
                 return (0, openaicompatible_1.generateWithOpenAICompatible)(prompt);
             case 'gemini':

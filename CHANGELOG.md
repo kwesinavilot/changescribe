@@ -5,6 +5,23 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.1] - 2025-03-27
+### Added
+- Added detailed progress notifications during changelog generation
+- Added step-by-step progress reporting for better user feedback
+- Added themed icons for sidebar view (light and dark modes)
+
+### Changed
+- Enhanced tree view provider with custom header and themed icons
+- Improved progress feedback during changelog generation
+- Updated sidebar UI with more professional appearance
+- Refined code organization in changelog provider
+
+### Fixed
+- Fixed tree view provider implementation
+- Resolved sidebar view initialization issues
+- Improved error handling in tree view provider
+
 ## [0.12.0] - 2025-03-26
 ### Added
 - Added sidebar view container with Change Scribe icon

@@ -15,7 +15,7 @@ import { ChangelogTreeProvider } from './providers/changelogTreeProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     // Register the tree data provider
-    const changelogTreeProvider = new ChangelogTreeProvider();
+    const changelogTreeProvider = new ChangelogTreeProvider(context);
     const treeView = vscode.window.createTreeView('changeScribeChangelog', {
         treeDataProvider: changelogTreeProvider,
         showCollapseAll: true
@@ -34,54 +34,3 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {}
-
-class ChangelogTreeProvider implements vscode.TreeDataProvider<ChangelogItem> {
-    private _onDidChangeTreeData = new vscode.EventEmitter<ChangelogItem | undefined>();
-    readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
-
-    refresh(): void {
-        this._onDidChangeTreeData.fire(undefined);
-    }
-
-    getTreeItem(element: ChangelogItem): vscode.TreeItem {
-        return element;
-    }
-
-    getChildren(): Thenable<ChangelogItem[]> {
-        return Promise.resolve([
-            new ChangelogItem(
-                'Generate Changelog',
-                'Generate a new changelog',
-                vscode.TreeItemCollapsibleState.None,
-                {
-                    command: 'changeScribe.generateChangelog',
-                    title: 'Generate Changelog',
-                    tooltip: 'Generate a new changelog'
-                }
-            ),
-            new ChangelogItem(
-                'Change LLM Provider',
-                'Update the LLM provider settings',
-                vscode.TreeItemCollapsibleState.None,
-                {
-                    command: 'changescribe.updateLLMProvider',
-                    title: 'Change LLM Provider',
-                    tooltip: 'Update the LLM provider settings'
-                }
-            )
-        ]);
-    }
-}
-
-class ChangelogItem extends vscode.TreeItem {
-    constructor(
-        public readonly label: string,
-        public readonly tooltip: string,
-        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly command?: vscode.Command
-    ) {
-        super(label, collapsibleState);
-        this.tooltip = tooltip;
-        this.command = command;
-    }
-}

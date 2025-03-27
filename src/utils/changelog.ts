@@ -175,27 +175,37 @@ function getSectionsByFormat(format: ChangelogFormat): SectionMapping {
  * The generated changelog is then sent to the webview panel.
  * 
  * @param {vscode.WebviewPanel} panel - The webview panel to which the changelog will be streamed.
+ * @param {vscode.Progress<{ message?: string; increment?: number }>} [progress] - Optional progress reporter.
  * 
  * @throws Will throw an error if there is an issue generating the changelog.
  */
-export async function generateAndStreamChangelog(panel: vscode.WebviewPanel) {
+export async function generateAndStreamChangelog(
+    panel: vscode.WebviewPanel,
+    progress?: vscode.Progress<{ message?: string; increment?: number }>
+) {
     try {
+        // Update progress for configuration
+        progress?.report({ message: 'Reading configuration...' });
         const config = vscode.workspace.getConfiguration('changeScribe');
         const maxCommits = config.get<number>('maxCommits') || 3;
         const changelogFormat = config.get<string>('changelogFormat') || 'keepachangelog';
 
-        // Get git changes
+        // Update progress for git changes
+        progress?.report({ message: 'Fetching git changes...' });
         const changes = await getGitChanges(maxCommits);
         const formattedChanges = await formatChangesForChangelog(changes, changelogFormat as 'conventional' | 'keepachangelog');
 
-        // Initialize LLM
+        // Update progress for LLM initialization
+        progress?.report({ message: 'Initializing AI model...' });
         await initializeLLM();
 
-        // Generate changelog
+        // Update progress for changelog generation
+        progress?.report({ message: 'Generating changelog content...' });
         const aiDescription = await getAIGeneratedDescription(formattedChanges);
         const newChanges = `## [Unreleased]\n\n${aiDescription}\n\n`;
 
-        // Update changelog
+        // Update progress for final steps
+        progress?.report({ message: 'Updating changelog...' });
         let changelogContent = await getExistingChangelogContent();
         if (!changelogContent) {
             changelogContent = getChangelogHeader();

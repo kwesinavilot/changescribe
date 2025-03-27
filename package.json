@@ -54,6 +54,11 @@
             {
                 "command": "changescribe.updateLLMProvider",
                 "title": "Change Scribe: LLM Provider"
+            },
+            {
+                "command": "changeScribe.refreshView",
+                "title": "Refresh Change Scribe View",
+                "category": "Change Scribe"
             }
         ],
         "configuration": {
