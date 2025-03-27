@@ -5,8 +5,20 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.12.3] - 2025-03-27
+### Added
+- Added option to include unstaged files in changelog generation
+- Added configuration toggle for unstaged changes inclusion
+- Added separation between staged and unstaged changes in output
+
+### Changed
+- Enhanced git change tracking to handle unstaged files separately
+- Updated changelog formatting to clearly distinguish unstaged changes
+- Improved configuration options with descriptive warnings about unstaged files
+
+### Fixed
+- Fixed git diff handling for both staged and unstaged files
+- Improved error handling in git operations
 
 ## [0.12.2] - 2025-03-27
 ### Added
@@ -50,18 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Improved extension accessibility through VS Code's activity bar
 - Reorganized code structure for better maintainability
-- Enhanced user interface with quick action buttons in sidebar
-
-## [0.11.2] - 2024-12-30
-### Added
-- Added format-specific section mapping for both changelog styles
-- Added better changelog structure preservation during updates
-
-### Changed
-- Updated changelog generation to handle both Conventional and Keep a Changelog formats consistently
-- Improved section handling in changelog merging process
-- Enhanced git change tracking to provide better context for LLM processing
-- Refined prompt system to generate more semantic descriptions
 
 ### Fixed
 - Fixed section mapping between Conventional and Keep a Changelog formats

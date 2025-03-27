@@ -16,30 +16,29 @@ exports.commitChangelog = commitChangelog;
 const simple_git_1 = require("simple-git");
 const vscode = require("vscode");
 /**
- * Retrieves Git changes including staged changes and recent commits from the current workspace.
+ * Retrieves git changes from the current repository, including staged, unstaged files, and recent commits.
  *
- * @param maxCommits - The maximum number of recent commits to retrieve
- * @returns A Promise that resolves to a GitChanges object containing:
- *          - staged: Array of staged files with their status and diff
- *          - commits: Array of recent commits with hash, message and changed files
- * @throws {Error} When no workspace folder is found
- *
- * @interface GitChanges
- * @property {Array<{file: string, status: string, diff: string}>} staged - Staged changes
- * @property {Array<{hash: string, message: string, files: Array<{file: string, changes: string}>}>} commits - Recent commits
+ * @param maxCommits - The maximum number of recent commits to retrieve.
+ * @returns A Promise resolving to a GitChanges object containing arrays of staged and unstaged files and their status,
+ * as well as recent commit information.
+ * @throws An error if no workspace folder is open.
  */
 function getGitChanges(maxCommits) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders) {
             throw new Error('No workspace folder found. Please open a project.');
         }
         const rootPath = workspaceFolders[0].uri.fsPath;
         const git = (0, simple_git_1.simpleGit)(rootPath);
-        // Get staged changes
+        const config = vscode.workspace.getConfiguration('changeScribe');
+        const includeUnstaged = config.get('includeUnstagedChanges') || false;
+        // Get repository status
         const status = yield git.status();
         const staged = [];
+        const unstaged = [];
+        // Process staged changes
         for (const file of status.staged) {
             const diff = yield git.diff(['--cached', file]);
             staged.push({
@@ -47,6 +46,18 @@ function getGitChanges(maxCommits) {
                 status: ((_a = status.files.find(f => f.path === file)) === null || _a === void 0 ? void 0 : _a.index) || 'M',
                 diff: diff
             });
+        }
+        // Process unstaged changes if enabled
+        if (includeUnstaged) {
+            const unstagedFiles = [...status.not_added, ...status.modified];
+            for (const file of unstagedFiles) {
+                const diff = yield git.diff([file]);
+                unstaged.push({
+                    file,
+                    status: ((_b = status.files.find(f => f.path === file)) === null || _b === void 0 ? void 0 : _b.working_dir) || 'M',
+                    diff: diff
+                });
+            }
         }
         // Get recent commits with their changes
         const log = yield git.log({
@@ -65,26 +76,15 @@ function getGitChanges(maxCommits) {
                 }))
             });
         });
-        return { staged, commits };
+        return includeUnstaged ? { staged, unstaged, commits } : { staged, commits };
     });
 }
 /**
  * Formats git changes into a changelog string based on the specified format.
  *
- * @param changes - The git changes to format, containing staged files and recent commits
- * @param format - The format to use for the changelog, either 'conventional' or 'keepachangelog'
- * @returns A formatted string containing the changelog entries
- *
- * @throws {Error} When VSCode configuration cannot be accessed
- *
- * @example
- * ```ts
- * const changes = {
- *   staged: [{status: 'M', file: 'index.ts', diff: '+1 line'}],
- *   commits: [{message: 'feat: new feature', files: [{file: 'index.ts'}]}]
- * };
- * const formatted = await formatChangesForChangelog(changes, 'conventional');
- * ```
+ * @param changes - The Git changes to format
+ * @param format - The format to use for the changelog ('conventional' or 'keepachangelog')
+ * @returns A formatted changelog string
  */
 function formatChangesForChangelog(changes, format) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -97,7 +97,11 @@ function formatChangesForChangelog(changes, format) {
         ${changes.staged.map(f => `- ${f.status} ${f.file}
         ${f.diff || ''}`).join('\n')}
 
-        Recent Commits:
+        ${changes.unstaged ? `Unstaged Files:
+        ${changes.unstaged.map(f => `- ${f.status} ${f.file}
+        ${f.diff || ''}`).join('\n')}
+
+        ` : ''}Recent Commits:
         ${changes.commits.map(c => `- ${c.message}
         Files: ${c.files.map(f => f.file).join(', ')}`).join('\n')}`;
         }
@@ -108,7 +112,11 @@ function formatChangesForChangelog(changes, format) {
         ${changes.staged.map(f => `* ${f.file}
         ${f.diff || ''}`).join('\n')}
 
-        Recent Changes:
+        ${changes.unstaged ? `Unstaged Changes:
+        ${changes.unstaged.map(f => `* ${f.file}
+        ${f.diff || ''}`).join('\n')}
+
+        ` : ''}Recent Changes:
         ${changes.commits.map(c => `* ${c.message}
         Changed: ${c.files.map(f => f.file).join(', ')}`).join('\n')}`;
         }

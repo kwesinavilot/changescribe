@@ -102,83 +102,89 @@
                     "description": "Select the LLM provider for generating changelog descriptions",
                     "order": 3
                 },
+                "changeScribe.includeUnstagedChanges": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Include unstaged files when generating changelog (Note: may include work in progress)",
+                    "order": 4
+                },
                 "changeScribe.openaiApiKey": {
                     "type": "string",
                     "default": "",
                     "description": "Your OpenAI API Key for generating changelog descriptions",
-                    "order": 4
+                    "order": 6
                 },
                 "changeScribe.openaiModel": {
                     "type": "string",
                     "default": "",
                     "description": "The OpenAI Model for generating changelog descriptions",
-                    "order": 5
+                    "order": 7
                 },
                 "changeScribe.openaiApiEndpoint": {
                     "type": "string",
                     "default": "https://api.openai.com/v1",
                     "description": "Your custom OpenAI API Endpoint",
-                    "order": 6
+                    "order": 8
                 },
                 "changeScribe.azureOpenaiApiKey": {
                     "type": "string",
                     "default": "",
                     "description": "Your Azure OpenAI API Key for generating changelog descriptions",
-                    "order": 7
+                    "order": 9
                 },
                 "changeScribe.azureOpenaiEndpoint": {
                     "type": "string",
                     "default": "",
                     "description": "Your Azure OpenAI API Endpoint",
-                    "order": 8
+                    "order": 10
                 },
                 "changeScribe.azureOpenaiDeploymentName": {
                     "type": "string",
                     "default": "",
                     "description": "The Azure OpenAI Deployment Name",
-                    "order": 9
+                    "order": 11
                 },
                 "changeScribe.azureOpenaiApiVersion": {
                     "type": "string",
                     "default": "",
                     "description": "The Azure OpenAI API Version",
-                    "order": 10
+                    "order": 12
                 },
                 "changeScribe.azureOpenaiModel": {
                     "type": "string",
                     "default": "",
                     "description": "The Azure OpenAI Model",
-                    "order": 11
+                    "order": 13
                 },
                 "changeScribe.openaiCompatibleApiKey": {
                     "type": "string",
                     "default": "",
                     "description": "Your OpenAI Compatible API Key for generating changelog descriptions (e.g. Groq, SambaNova)",
-                    "order": 12
+                    "order": 14
                 },
                 "changeScribe.openaiCompatibleApiEndpoint": {
                     "type": "string",
                     "default": "",
                     "description": "Your OpenAI Compatible API Endpoint (e.g. Groq, SambaNova endpoint)",
-                    "order": 13
+                    "order": 15
                 },
                 "changeScribe.openaiCompatibleModel": {
                     "type": "string",
                     "default": "",
                     "description": "The OpenAI Compatible Model for generating changelog descriptions (e.g. Groq, SambaNova models)",
-                    "order": 14
+                    "order": 16
                 },
                 "changeScribe.geminiApiKey": {
                     "type": "string",
                     "default": "",
                     "description": "Your Google Gemini API key for generating changelog descriptions",
-                    "order": 15
+                    "order": 17
                 },
                 "changeScribe.geminiModel": {
                     "type": "string",
                     "default": "",
                     "description": "The Gemini model to use for generating changelog descriptions",
-                    "order": 16
+                    "order": 18
                 }
             }
         },
