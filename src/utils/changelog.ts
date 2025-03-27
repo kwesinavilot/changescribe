@@ -54,53 +54,83 @@ export async function getExistingChangelogContent(): Promise<string | null> {
  * @returns The updated changelog content with the new changes inserted.
  */
 export function insertNewChanges(existingContent: string, newChanges: string, format: ChangelogFormat): string {
-    console.log('Existing content:', existingContent);
-    console.log('New changes:', newChanges);
+    // Clean up existing content
+    existingContent = existingContent ? cleanChangelogContent(existingContent) : '';
 
     // If no content, create new changelog
     if (!existingContent) {
-        return getChangelogHeader() + '\n## [Unreleased]\n' + newChanges;
+        return getChangelogHeader() + '\n\n## [Unreleased]\n' + newChanges;
     }
 
-    // Check if content starts with header, if not, add it
-    if (!existingContent.startsWith('# Changelog')) {
-        existingContent = getChangelogHeader() + existingContent;
+    // Ensure proper header
+    if (!existingContent.includes('# Changelog')) {
+        existingContent = getChangelogHeader() + '\n\n' + existingContent;
     }
 
-    // Try to find the Unreleased section
-    const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
-    console.log('Unreleased index:', unreleasedIndex);
-    
-    if (unreleasedIndex !== -1) {
-        // Find the next version header or end of content
-        const nextVersionMatch = existingContent.substring(unreleasedIndex).match(/\n## \[\d+\.\d+\.\d+\]/);
-        console.log('Next version match:', nextVersionMatch);
-        
-        const unreleasedEnd = nextVersionMatch 
+    // Process new changes according to format
+    const processedChanges = processChangesByFormat(newChanges, format, 
+        format === 'conventional' 
+            ? ['Features', 'Bug Fixes', 'Documentation', 'Styles', 'Refactoring', 'Tests', 'Chores']
+            : ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
+    );
+
+    // Find Unreleased section or insert after header
+    const unreleasedMatch = existingContent.match(/## \[Unreleased\]/);
+    if (unreleasedMatch) {
+        const unreleasedIndex = existingContent.indexOf('## [Unreleased]');
+        const nextVersionMatch = existingContent.substring(unreleasedIndex)
+            .match(/\n## \[\d+\.\d+\.\d+\]/);
+
+        const insertPosition = nextVersionMatch 
             ? unreleasedIndex + (nextVersionMatch.index ?? 0)
             : existingContent.length;
-        console.log('Unreleased end:', unreleasedEnd);
-        
-        // Extract existing unreleased content
-        const unreleasedContent = existingContent.substring(unreleasedIndex, unreleasedEnd);
-        console.log('Unreleased content:', unreleasedContent);
-        
-        // Remove any duplicate Unreleased sections from new changes
-        const cleanedNewChanges = newChanges.replace('## [Unreleased]\n', '');
-        
-        // Merge existing unreleased content with new changes
-        const mergedChanges = mergeUnreleasedChanges(unreleasedContent, cleanedNewChanges, format);
-        
-        return existingContent.substring(0, unreleasedIndex) + 
-               mergedChanges + 
-               existingContent.substring(unreleasedEnd);
+
+        return existingContent.substring(0, unreleasedIndex) +
+            '## [Unreleased]\n' +
+            processedChanges + '\n' +
+            existingContent.substring(insertPosition);
     }
 
-    // If no Unreleased section, add it after header
-    const headerEnd = existingContent.indexOf('\n\n');
-    return existingContent.substring(0, headerEnd) + 
-           '\n\n## [Unreleased]\n' + newChanges + 
-           existingContent.substring(headerEnd);
+    // Add new Unreleased section after header
+    const headerEndMatch = existingContent.match(/^# Changelog.*?\n(?:\s*\n)?/s);
+    const headerEnd = headerEndMatch ? headerEndMatch[0].length : 0;
+    
+    return existingContent.substring(0, headerEnd) +
+        '\n## [Unreleased]\n' +
+        processedChanges + '\n' +
+        existingContent.substring(headerEnd);
+}
+
+/**
+ * Process changelog changes according to the specified format.
+ * 
+ * @param changes - The raw changelog changes to process
+ * @param format - The desired changelog format ('conventional' or 'keepachangelog')
+ * @param sections - The list of sections to use for the specified format
+ * @returns A string representing the processed changes in the specified format
+ */
+function processChangesByFormat(changes: string, format: ChangelogFormat, sections: string[]): string {
+    const sectionContent: { [key: string]: string[] } = {};
+    sections.forEach(section => sectionContent[section] = []);
+
+    let currentSection = '';
+    changes.split('\n').forEach(line => {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('### ')) {
+            currentSection = trimmedLine.substring(4).trim();
+        } else if (currentSection && trimmedLine.startsWith('- ') && sectionContent[currentSection]) {
+            sectionContent[currentSection].push(trimmedLine);
+        }
+    });
+
+    let processed = '';
+    sections.forEach(section => {
+        if (sectionContent[section].length > 0) {
+            processed += `### ${section}\n${sectionContent[section].join('\n')}\n\n`;
+        }
+    });
+
+    return processed.trim();
 }
 
 /**
@@ -148,6 +178,13 @@ function mergeUnreleasedChanges(existing: string, newChanges: string, format: Ch
     return merged;
 }
 
+/**
+ * Returns a mapping of sections based on the given changelog format.
+ * 
+ * @param format - The changelog format to use ('conventional' or 'keepachangelog').
+ * @returns A SectionMapping object containing arrays of section names 
+ *          corresponding to the specified format.
+ */
 function getSectionsByFormat(format: ChangelogFormat): SectionMapping {
     return format === 'conventional' ? {
         'Features': [],
@@ -189,6 +226,13 @@ export async function generateAndStreamChangelog(
         const config = vscode.workspace.getConfiguration('changeScribe');
         const maxCommits = config.get<number>('maxCommits') || 3;
         const changelogFormat = config.get<string>('changelogFormat') || 'keepachangelog';
+        const currentVersion = config.get<string>('version') || '0.1.0';
+        const normalizedVersion = normalizeVersion(currentVersion);
+
+        // Ensure format is valid
+        if (changelogFormat !== 'conventional' && changelogFormat !== 'keepachangelog') {
+            throw new Error('Invalid changelog format specified');
+        }
 
         // Update progress for git changes
         progress?.report({ message: 'Fetching git changes...' });
@@ -202,16 +246,17 @@ export async function generateAndStreamChangelog(
         // Update progress for changelog generation
         progress?.report({ message: 'Generating changelog content...' });
         const aiDescription = await getAIGeneratedDescription(formattedChanges);
-        const newChanges = `## [Unreleased]\n\n${aiDescription}\n\n`;
+        const formattedDescription = formatChangelogEntry(aiDescription, changelogFormat as ChangelogFormat);
+
+        // When creating a new release:
+        const versionEntry = createVersionEntry(normalizedVersion, formattedDescription);
 
         // Update progress for final steps
         progress?.report({ message: 'Updating changelog...' });
         let changelogContent = await getExistingChangelogContent();
-        if (!changelogContent) {
-            changelogContent = getChangelogHeader();
-        }
+        changelogContent = changelogContent ? cleanChangelogContent(changelogContent) : getChangelogHeader();
 
-        const updatedChangelog = insertNewChanges(changelogContent, newChanges, changelogFormat as ChangelogFormat);
+        const updatedChangelog = insertNewChanges(changelogContent, versionEntry, changelogFormat as ChangelogFormat);
         panel.webview.postMessage({ type: 'updateChangelog', content: updatedChangelog });
         panel.webview.postMessage({ type: 'generationComplete' });
     } catch (error) {
@@ -222,4 +267,108 @@ export async function generateAndStreamChangelog(
         panel.webview.postMessage({ type: 'generationComplete' });
         vscode.window.showErrorMessage(`Error generating changelog: ${error instanceof Error ? error.message : String(error)}`);
     }
+}
+
+/**
+ * Removes duplicate headers from a changelog content string.
+ * 
+ * This function takes a changelog content string, removes any duplicate headers ("# Changelog")
+ * and format declarations, and returns the cleaned string.
+ * 
+ * @param {string} content - The changelog content string to be cleaned.
+ * @returns {string} The cleaned changelog content string.
+ */
+function cleanChangelogContent(content: string): string {
+    // Split content into sections
+    const sections = content.split(/(?=^# Changelog)/m);
+    
+    // Get the last (or only) changelog section
+    const lastSection = sections[sections.length - 1];
+    
+    // Remove duplicate Unreleased sections
+    const lines = lastSection.split('\n');
+    let hasUnreleased = false;
+    
+    const cleanedLines = lines.filter(line => {
+        // Keep only the first Unreleased section
+        if (line.trim() === '## [Unreleased]') {
+            if (hasUnreleased) return false;
+            hasUnreleased = true;
+        }
+        return true;
+    });
+
+    return cleanedLines.join('\n').trim();
+}
+
+/**
+ * Normalize a version string by removing 'v' prefix and suffixes like '-a', '-beta'
+ * and ensuring a three-part version number.
+ * 
+ * @param {string} version - The version string to be normalized.
+ * @returns {string} The normalized version string.
+ */
+function normalizeVersion(version: string): string {
+    // Remove 'v' prefix if present
+    version = version.replace(/^v/, '');
+
+    // Remove suffixes like '-a', '-beta'
+    version = version.replace(/-[a-zA-Z].*$/, '');
+
+    // Ensure three-part version number
+    const parts = version.split('.');
+    while (parts.length < 3) parts.push('0');
+    return parts.slice(0, 3).join('.');
+}
+
+/**
+ * Formats a changelog entry according to the specified format.
+ * 
+ * @param description - The AI-generated description to format
+ * @param format - The desired changelog format ('conventional' or 'keepachangelog')
+ * @returns Formatted changelog entry
+ */
+function formatChangelogEntry(description: string, format: ChangelogFormat): string {
+    // Split the description into lines
+    const lines = description.split('\n').filter(line => line.trim());
+    const sections = getSectionsByFormat(format);
+    let currentSection = '';
+
+    // Parse the AI description and categorize changes
+    lines.forEach(line => {
+        if (line.match(/^###\s+/)) {
+            currentSection = line.replace(/^###\s+/, '').trim();
+        } else if (line.match(/^[*-]\s+/) && currentSection) {
+            const entry = line.replace(/^[*-]\s+/, '- ');
+            if (sections[currentSection]) {
+                sections[currentSection].push(entry);
+            }
+        }
+    });
+
+    // Build the formatted entry
+    let formatted = '';
+    Object.entries(sections).forEach(([section, entries]) => {
+        if (entries.length > 0) {
+            formatted += `### ${section}\n${entries.join('\n')}\n\n`;
+        }
+    });
+
+    return formatted.trim();
+}
+
+/**
+ * Creates a version entry string in the format:
+ *   ## [version] - YYYY-MM-DD
+ *   [changes]
+ * 
+ * @param {string} version - The version string to include in the entry. 
+ * @param {string} changes - The changelog content to include in the entry.
+ * @returns {string} A version entry string.
+ */
+function createVersionEntry(version: string, changes: string): string {
+    const normalizedVersion = normalizeVersion(version);
+    const date = new Date().toISOString().split('T')[0];
+    
+    return `## [${normalizedVersion}] - ${date}\n${changes}\n`;
 }

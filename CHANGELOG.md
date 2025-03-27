@@ -5,6 +5,24 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.4] - 2025-03-27
+### Added
+- Added version normalization to ensure consistent version numbering
+- Added improved changelog cleaning functionality
+- Added validation for changelog formatting consistency
+
+### Changed
+- Enhanced changelog generation logic to prevent duplicate headers
+- Improved handling of Unreleased sections
+- Updated section processing to maintain consistent formatting
+- Refined spacing and structure in generated changelogs
+
+### Fixed
+- Fixed issue with duplicate changelog headers and format declarations
+- Fixed multiple Unreleased sections appearing in output
+- Fixed inconsistent spacing between changelog sections
+- Improved handling of existing changelog content
+
 ## [0.12.3] - 2025-03-27
 ### Added
 - Added option to include unstaged files in changelog generation
