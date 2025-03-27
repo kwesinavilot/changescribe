@@ -57,3 +57,29 @@ export async function getAIGeneratedDescription(commitMessage: string): Promise<
             throw new Error(`Unsupported LLM provider: ${currentProvider}`);
     }
 }
+
+/**
+ * Checks if the Language Learning Model (LLM) is configured by verifying the presence
+ * of a selected provider and the corresponding API key in the configuration.
+ *
+ * @returns {boolean} True if the LLM provider is set and the API key for the provider
+ *                    exists in the configuration; otherwise, false.
+ */
+
+export function isLLMConfigured(): boolean {
+    const config = vscode.workspace.getConfiguration('changeScribe');
+    const provider = config.get<string>('llmProvider');
+    
+    // If provider is set and the corresponding API key exists, consider it configured
+    if (provider === 'openai' && config.get<string>('openaiApiKey')) {
+        return true;
+    } else if (provider === 'azureopenai' && config.get<string>('azureOpenaiApiKey')) {
+        return true;
+    } else if (provider === 'openai-compatible' && config.get<string>('openaiCompatibleApiKey')) {
+        return true;
+    } else if (provider === 'gemini' && config.get<string>('geminiApiKey')) {
+        return true;
+    }
+    
+    return false;
+}

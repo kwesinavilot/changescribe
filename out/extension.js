@@ -15,6 +15,16 @@ const changelogTreeProvider_1 = require("./providers/changelogTreeProvider");
  * @param context - The context in which the extension is running, providing
  *                  access to the extension's environment and resources.
  */
+/**
+ * Activates the Change Scribe extension.
+ *
+ * This function is called when the extension is activated. It registers the
+ * tree data provider and commands, and sets up a custom tree data provider
+ * for displaying the changelog.
+ *
+ * @param context - The context in which the extension is running, providing
+ *                  access to the extension's environment and resources.
+ */
 function activate(context) {
     // Register the tree data provider
     const changelogTreeProvider = new changelogTreeProvider_1.ChangelogTreeProvider(context);

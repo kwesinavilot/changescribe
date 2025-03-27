@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeLLM = initializeLLM;
 exports.getAIGeneratedDescription = getAIGeneratedDescription;
+exports.isLLMConfigured = isLLMConfigured;
 const vscode = require("vscode");
 const openai_1 = require("../services/openai");
 const azureOpenai_1 = require("../services/azureOpenai");
@@ -68,5 +69,30 @@ function getAIGeneratedDescription(commitMessage) {
                 throw new Error(`Unsupported LLM provider: ${currentProvider}`);
         }
     });
+}
+/**
+ * Checks if the Language Learning Model (LLM) is configured by verifying the presence
+ * of a selected provider and the corresponding API key in the configuration.
+ *
+ * @returns {boolean} True if the LLM provider is set and the API key for the provider
+ *                    exists in the configuration; otherwise, false.
+ */
+function isLLMConfigured() {
+    const config = vscode.workspace.getConfiguration('changeScribe');
+    const provider = config.get('llmProvider');
+    // If provider is set and the corresponding API key exists, consider it configured
+    if (provider === 'openai' && config.get('openaiApiKey')) {
+        return true;
+    }
+    else if (provider === 'azureopenai' && config.get('azureOpenaiApiKey')) {
+        return true;
+    }
+    else if (provider === 'openai-compatible' && config.get('openaiCompatibleApiKey')) {
+        return true;
+    }
+    else if (provider === 'gemini' && config.get('geminiApiKey')) {
+        return true;
+    }
+    return false;
 }
 //# sourceMappingURL=llm.js.map

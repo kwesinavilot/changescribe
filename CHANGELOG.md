@@ -5,6 +5,25 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.12.2] - 2025-03-27
+### Added
+- Added isLLMConfigured() function to check if an LLM provider is already configured
+- Added friendly descriptions for configuration options in VS Code settings
+- Added detailed provider descriptions in LLM selection dropdown
+
+### Changed
+- Enhanced VS Code settings with descriptive enums for changelog formats and LLM providers
+- Modified command registration to only prompt for LLM selection when necessary
+- Updated LLM provider selection to save user preference persistently
+- Improved user interface for LLM provider selection with friendly names
+
+### Fixed
+- Fixed issue where users were prompted to select an LLM provider every time the extension was activated
+- Fixed configuration descriptions to be more user-friendly and informative
+
 ## [0.12.1] - 2025-03-27
 ### Added
 - Added detailed progress notifications during changelog generation

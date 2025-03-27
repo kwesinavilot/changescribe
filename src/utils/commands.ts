@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { validateConfig } from './config';
-import { initializeLLM } from './llm';
+import { initializeLLM, isLLMConfigured } from './llm';
 import { createWebviewPanel, saveChangelog } from '../services/webview';
 import { generateAndStreamChangelog } from './changelog';
 import { commitChangelog } from '../services/git';
@@ -68,31 +68,48 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     const updateLLMProviderCommand = vscode.commands.registerCommand('changescribe.updateLLMProvider', async () => {
         const config = vscode.workspace.getConfiguration('changeScribe');
-        const llmProviders = ['openai', 'azureopenai', 'openai-compatible', 'gemini'];
+        const providerNames = {
+            'openai': 'OpenAI',
+            'azureopenai': 'Azure OpenAI',
+            'openai-compatible': 'OpenAI-compatible providers (e.g. Groq, SambaNova)',
+            'gemini': 'Google Gemini'
+        };
+
         const currentProvider = config.get<string>('llmProvider');
 
-        const selectedProvider = await vscode.window.showQuickPick(llmProviders, {
+        // Create QuickPick items with labels and values
+        const quickPickItems = Object.entries(providerNames).map(([key, label]) => ({
+            label,
+            description: currentProvider === key ? '(current)' : '',
+            value: key
+        }));
+
+        const selected = await vscode.window.showQuickPick(quickPickItems, {
             placeHolder: 'Select LLM Provider',
             ignoreFocusOut: true
         });
 
-        if (selectedProvider) {
-            await config.update('llmProvider', selectedProvider, vscode.ConfigurationTarget.Global);
+        if (selected) {
+            // await config.update('llmProvider', selected.value, vscode.ConfigurationTarget.Global);
+            const config = vscode.workspace.getConfiguration('changeScribe');
+            await config.update('llmProvider', selected, vscode.ConfigurationTarget.Global);
 
-            // Update setting visibility
-            await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', selectedProvider === 'openai');
-            await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', selectedProvider === 'azureopenai');
-            await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', selectedProvider === 'openai-compatible');
-            await vscode.commands.executeCommand('setContext', 'changescribe.isGemini', selectedProvider === 'gemini');
+            // Update setting visibility using the internal key
+            await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAI', selected.value === 'openai');
+            await vscode.commands.executeCommand('setContext', 'changescribe.isAzureOpenAI', selected.value === 'azureopenai');
+            await vscode.commands.executeCommand('setContext', 'changescribe.isOpenAICompatible', selected.value === 'openai-compatible');
+            await vscode.commands.executeCommand('setContext', 'changescribe.isGemini', selected.value === 'gemini');
 
-            vscode.window.showInformationMessage(`Change Scribe: LLM provider is now set to ${selectedProvider}`);
+            vscode.window.showInformationMessage(`Change Scribe: LLM provider is now set to ${selected.label}`);
         } else {
-            vscode.window.showInformationMessage(`Change Scribe: LLM provider remains ${currentProvider}`);
+            const currentName = providerNames[currentProvider as keyof typeof providerNames] || 'Unknown';
+            vscode.window.showInformationMessage(`Change Scribe: LLM provider remains ${currentName}`);
         }
     });
 
     context.subscriptions.push(updateLLMProviderCommand);
 
-    // Run the command once on activation to set initial visibility
-    vscode.commands.executeCommand('changescribe.updateLLMProvider');
+    if (!isLLMConfigured()) {
+        vscode.commands.executeCommand('changescribe.updateLLMProvider');
+    }
 }

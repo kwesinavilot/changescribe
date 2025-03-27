@@ -67,6 +67,10 @@
                 "changeScribe.changelogFormat": {
                     "type": "string",
                     "default": "keepachangelog",
+                    "enumDescriptions": [
+                        "Conventional Commits Format (Angular-style)",
+                        "Keep a Changelog (Recommended)"
+                    ],
                     "enum": [
                         "conventional",
                         "keepachangelog"
@@ -82,13 +86,19 @@
                 },
                 "changeScribe.llmProvider": {
                     "type": "string",
+                    "default": "openai",
+                    "enumDescriptions": [
+                        "OpenAI",
+                        "Azure OpenAI Service",
+                        "OpenAI-compatible Providers (eg. Groq, SambaNova)",
+                        "Google Gemini"
+                    ],
                     "enum": [
                         "openai",
                         "azureopenai",
                         "openai-compatible",
                         "gemini"
                     ],
-                    "default": "openai",
                     "description": "Select the LLM provider for generating changelog descriptions",
                     "order": 3
                 },
