@@ -200,8 +200,19 @@
         "views": {
             "changeScribe": [
                 {
-                    "id": "changeScribeView",
-                    "name": "Change Scribe"
+                    "id": "changeScribeChangesView",
+                    "name": "Changes",
+                    "type": "tree"
+                },
+                {
+                    "id": "changeScribeSettingsView",
+                    "name": "Settings",
+                    "type": "tree"
+                },
+                {
+                    "id": "changeScribeHelpView",
+                    "name": "Help & Feedback",
+                    "type": "tree"
                 }
             ]
         },

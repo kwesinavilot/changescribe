@@ -1,0 +1,70 @@
+body {
+    padding: 0;
+    margin: 0;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+    background-color: var(--vscode-sideBar-background);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+}
+
+.section {
+    margin-bottom: 10px;
+}
+
+.section-header {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0;
+    padding: 8px 12px;
+    background-color: var(--vscode-sideBarSectionHeader-background);
+    color: var(--vscode-sideBarSectionHeader-foreground);
+    border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
+}
+
+.section-content {
+    padding: 0;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.item:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.item:active {
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.codicon {
+    margin-right: 8px;
+    font-family: 'codicon';
+    font-size: 16px;
+}
+
+.codicon-note-add::before { content: '\ea60'; }
+.codicon-note::before { content: '\ea56'; }
+.codicon-server::before { content: '\ea90'; }
+.codicon-number::before { content: '\ea57'; }
+.codicon-git-commit::before { content: '\eafc'; }
+.codicon-gear::before { content: '\eb51'; }
+.codicon-book::before { content: '\ea96'; }
+.codicon-bug::before { content: '\ea7b'; }
+.codicon-git-pull-request::before { content: '\eafc'; }
+
+.item-text {
+    font-size: 13px;
+}

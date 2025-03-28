@@ -5,6 +5,18 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1] - 2023-03-28
+
+### Added
+- Redesigned sidebar with separate sections for Changes, Settings, and Help & Feedback
+- Each section now appears as a distinct panel in the sidebar for better organization
+- Added icons for all sidebar items to improve visual navigation
+
+### Changed
+- Refactored tree view providers to use a more modular approach
+- Improved sidebar UI with cleaner organization and better visual hierarchy
+- Updated command registration to support the new sidebar structure
+
 ## [0.13.0] - 2025-03-28
 
 ### Added

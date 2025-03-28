@@ -1,6 +1,11 @@
 import * as vscode from 'vscode';
 import { registerCommands } from './utils/commands';
-import { ChangelogTreeProvider } from './providers/changelogTreeProvider';
+import { 
+    ChangesTreeProvider, 
+    SettingsTreeProvider, 
+    HelpTreeProvider 
+} from './providers/changelogTreeProvider';
+import { ChangelogWebviewProvider } from './providers/changelogWebviewProvider';
 
 /**
  * Activates the Change Scribe extension.
@@ -24,15 +29,31 @@ import { ChangelogTreeProvider } from './providers/changelogTreeProvider';
  *                  access to the extension's environment and resources.
  */
 export function activate(context: vscode.ExtensionContext) {
-    // Register the tree data provider
-    const changelogProvider = new ChangelogTreeProvider(context);
-    vscode.window.registerTreeDataProvider('changeScribeView', changelogProvider);
+    // Register the original TreeView provider (keep this)
+    const changesProvider = new ChangesTreeProvider();
+    const settingsProvider = new SettingsTreeProvider();
+    const helpProvider = new HelpTreeProvider();
+    
+    vscode.window.registerTreeDataProvider('changeScribeChangesView', changesProvider);
+    vscode.window.registerTreeDataProvider('changeScribeSettingsView', settingsProvider);
+    vscode.window.registerTreeDataProvider('changeScribeHelpView', helpProvider);
+
+    // Register the new WebView provider
+    // const webviewProvider = new ChangelogWebviewProvider(context.extensionUri);
+    // context.subscriptions.push(
+    //     vscode.window.registerWebviewViewProvider(
+    //         ChangelogWebviewProvider.viewType, 
+    //         webviewProvider
+    //     )
+    // );
 
     // Register commands
     context.subscriptions.push(
-        vscode.commands.registerCommand('changeScribe.refreshView', () => 
-            changelogProvider.refresh
-        )
+            vscode.commands.registerCommand('changeScribe.refreshView', () => {
+                changesProvider.refresh()
+                settingsProvider.refresh()
+                helpProvider.refresh()
+            }        )
     );
 
     registerCommands(context);
