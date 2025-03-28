@@ -1,0 +1,9 @@
+.customview-tree [role="treeitem"].section {
+    font-weight: bold;
+    padding-left: 0 !important;
+    text-transform: uppercase;
+}
+
+.customview-tree [role="treeitem"].section::before {
+    display: none !important;
+}

@@ -191,20 +191,17 @@
         "viewsContainers": {
             "activitybar": [
                 {
-                    "id": "changescribe-sidebar",
+                    "id": "changeScribe",
                     "title": "Change Scribe",
-                    "icon": "media/sidebar-icon.svg"
+                    "icon": "resources/icon.svg"
                 }
             ]
         },
         "views": {
-            "changescribe-sidebar": [
+            "changeScribe": [
                 {
-                    "type": "tree",
-                    "id": "changeScribeChangelog",
-                    "name": "Change Scribe",
-                    "icon": "media/icon.svg",
-                    "contextualTitle": "Change Scribe"
+                    "id": "changeScribeView",
+                    "name": "Change Scribe"
                 }
             ]
         },
@@ -213,6 +210,9 @@
                 "view": "changeScribeChangelog",
                 "contents": "No changelog found. [Generate Changelog](command:changeScribe.generateChangelog)"
             }
+        ],
+        "css": [
+            "./media/styles.css"
         ]
     },
     "menus": {

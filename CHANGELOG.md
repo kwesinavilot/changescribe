@@ -5,6 +5,28 @@ All notable changes to the "Change Scribe" extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2025-03-28
+
+### Added
+- New sections in Change Scribe sidebar: Settings, Help & Feedback.
+- Settings page: Options for changelog format, LLM provider, maximum commits, and inclusion of unstaged changes.
+- Help page: Links to extension documentation, issue reporting, and contribution guidelines.
+- Styles for section headers in the changelog tree view.  These headers are now bold, uppercase, and have no left padding.
+- CSS file (`media/styles.css`) added for styling.
+- New command to refresh the Change Scribe view (`changeScribe.refreshView`).
+
+### Changed
+- Refactored the changelog tree provider to use sections and icons.
+- Improved the structure and organization of the Change Scribe extension's sidebar view.  The view is now more intuitive and user-friendly.
+- The changelog generation process has been updated to handle various changelog formats (`conventional`, etc.). The regex used to detect the header in the changelog file has been improved for better reliability.
+-  The `insertNewChanges` function now correctly handles multiple Unreleased sections and improves the insertion position of new changes.
+- Updated icon path in the VS Code extension manifest (`package.json`)
+
+
+### Removed
+- Previous sidebar layout. The header item has been replaced with a more structured tree view.
+-  Old icon files (`media/icon-dark.svg`, `media/icon-light.svg`, `media/sidebar-icon.svg`) replaced with a single `resources/icon.svg`
+
 ## [0.12.4] - 2025-03-27
 ### Added
 - Added version normalization to ensure consistent version numbering

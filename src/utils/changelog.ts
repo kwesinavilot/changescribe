@@ -68,8 +68,8 @@ export function insertNewChanges(existingContent: string, newChanges: string, fo
     }
 
     // Process new changes according to format
-    const processedChanges = processChangesByFormat(newChanges, format, 
-        format === 'conventional' 
+    const processedChanges = processChangesByFormat(newChanges, format,
+        format === 'conventional'
             ? ['Features', 'Bug Fixes', 'Documentation', 'Styles', 'Refactoring', 'Tests', 'Chores']
             : ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security']
     );
@@ -81,7 +81,7 @@ export function insertNewChanges(existingContent: string, newChanges: string, fo
         const nextVersionMatch = existingContent.substring(unreleasedIndex)
             .match(/\n## \[\d+\.\d+\.\d+\]/);
 
-        const insertPosition = nextVersionMatch 
+        const insertPosition = nextVersionMatch
             ? unreleasedIndex + (nextVersionMatch.index ?? 0)
             : existingContent.length;
 
@@ -92,9 +92,9 @@ export function insertNewChanges(existingContent: string, newChanges: string, fo
     }
 
     // Add new Unreleased section after header
-    const headerEndMatch = existingContent.match(/^# Changelog.*?\n(?:\s*\n)?/s);
+    const headerEndMatch = existingContent.match(/# Changelog[\s\S]*?\n(?:\s*\n)?/);
     const headerEnd = headerEndMatch ? headerEndMatch[0].length : 0;
-    
+
     return existingContent.substring(0, headerEnd) +
         '\n## [Unreleased]\n' +
         processedChanges + '\n' +
@@ -281,14 +281,14 @@ export async function generateAndStreamChangelog(
 function cleanChangelogContent(content: string): string {
     // Split content into sections
     const sections = content.split(/(?=^# Changelog)/m);
-    
+
     // Get the last (or only) changelog section
     const lastSection = sections[sections.length - 1];
-    
+
     // Remove duplicate Unreleased sections
     const lines = lastSection.split('\n');
     let hasUnreleased = false;
-    
+
     const cleanedLines = lines.filter(line => {
         // Keep only the first Unreleased section
         if (line.trim() === '## [Unreleased]') {
@@ -369,6 +369,6 @@ function formatChangelogEntry(description: string, format: ChangelogFormat): str
 function createVersionEntry(version: string, changes: string): string {
     const normalizedVersion = normalizeVersion(version);
     const date = new Date().toISOString().split('T')[0];
-    
+
     return `## [${normalizedVersion}] - ${date}\n${changes}\n`;
 }

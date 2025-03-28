@@ -25,18 +25,13 @@ import { ChangelogTreeProvider } from './providers/changelogTreeProvider';
  */
 export function activate(context: vscode.ExtensionContext) {
     // Register the tree data provider
-    const changelogTreeProvider = new ChangelogTreeProvider(context);
-    const treeView = vscode.window.createTreeView('changeScribeChangelog', {
-        treeDataProvider: changelogTreeProvider,
-        showCollapseAll: true
-    });
-
-    context.subscriptions.push(treeView);
+    const changelogProvider = new ChangelogTreeProvider(context);
+    vscode.window.registerTreeDataProvider('changeScribeView', changelogProvider);
 
     // Register commands
     context.subscriptions.push(
         vscode.commands.registerCommand('changeScribe.refreshView', () => 
-            changelogTreeProvider.refresh()
+            changelogProvider.refresh
         )
     );
 

@@ -91,7 +91,7 @@ function insertNewChanges(existingContent, newChanges, format) {
             existingContent.substring(insertPosition);
     }
     // Add new Unreleased section after header
-    const headerEndMatch = existingContent.match(/^# Changelog.*?\n(?:\s*\n)?/s);
+    const headerEndMatch = existingContent.match(/# Changelog[\s\S]*?\n(?:\s*\n)?/);
     const headerEnd = headerEndMatch ? headerEndMatch[0].length : 0;
     return existingContent.substring(0, headerEnd) +
         '\n## [Unreleased]\n' +

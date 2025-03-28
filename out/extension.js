@@ -27,14 +27,10 @@ const changelogTreeProvider_1 = require("./providers/changelogTreeProvider");
  */
 function activate(context) {
     // Register the tree data provider
-    const changelogTreeProvider = new changelogTreeProvider_1.ChangelogTreeProvider(context);
-    const treeView = vscode.window.createTreeView('changeScribeChangelog', {
-        treeDataProvider: changelogTreeProvider,
-        showCollapseAll: true
-    });
-    context.subscriptions.push(treeView);
+    const changelogProvider = new changelogTreeProvider_1.ChangelogTreeProvider(context);
+    vscode.window.registerTreeDataProvider('changeScribeView', changelogProvider);
     // Register commands
-    context.subscriptions.push(vscode.commands.registerCommand('changeScribe.refreshView', () => changelogTreeProvider.refresh()));
+    context.subscriptions.push(vscode.commands.registerCommand('changeScribe.refreshView', () => changelogProvider.refresh));
     (0, commands_1.registerCommands)(context);
 }
 function deactivate() { }

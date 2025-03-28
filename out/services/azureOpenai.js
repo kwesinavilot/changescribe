@@ -71,4 +71,4 @@ function generateWithAzureOpenAI(commitMessage) {
         }
     });
 }
-//# sourceMappingURL=azureopenai.js.map
+//# sourceMappingURL=azureOpenai.js.map

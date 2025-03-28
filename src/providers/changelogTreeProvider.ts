@@ -5,77 +5,172 @@ export class ChangelogItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly tooltip: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly command?: vscode.Command
+        public readonly command?: vscode.Command,
+        public readonly iconName?: string,
+        public readonly isSection: boolean = false
     ) {
         super(label, collapsibleState);
         this.tooltip = tooltip;
         this.command = command;
+
+        if (iconName) {
+            this.iconPath = new vscode.ThemeIcon(iconName);
+        }
+
+        if (isSection) {
+            // Make section headers uppercase
+            this.label = label.toUpperCase();
+
+            // Remove left padding and line
+            this.contextValue = 'section';
+
+            // These properties help remove the indentation
+            this.description = '';
+            this.resourceUri = undefined;
+        }
     }
 }
 
-export class ChangelogTreeProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
-    private _onDidChangeTreeData = new vscode.EventEmitter<vscode.TreeItem | undefined>();
+export class ChangelogTreeProvider implements vscode.TreeDataProvider<ChangelogItem> {
+    private _onDidChangeTreeData = new vscode.EventEmitter<ChangelogItem | undefined>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
-    
-    private _headerItem: vscode.TreeItem | null = null;
+
+    private _items: ChangelogItem[] = [];
 
     constructor(private context: vscode.ExtensionContext) {
-        this.initializeHeader();
+        this.initializeItems();
     }
 
-    private initializeHeader() {
-        const headerTreeItem = new vscode.TreeItem('Change Scribe');
-        headerTreeItem.iconPath = {
-            light: vscode.Uri.file(this.context.asAbsolutePath('resources/light-icon.svg')),
-            dark: vscode.Uri.file(this.context.asAbsolutePath('resources/dark-icon.svg'))
-        };
-        this._headerItem = headerTreeItem;
-    }
+    private initializeItems() {
+        // Changes section
+        const changesSection = new ChangelogItem(
+            'Changes',
+            'Manage changes',
+            vscode.TreeItemCollapsibleState.Expanded,
+            undefined,
+            'history',
+            true // Mark as section
+        );
 
-    setHeaderItem(item: vscode.TreeItem) {
-        this._headerItem = item;
-        this.refresh();
+        // Settings section
+        const settingsSection = new ChangelogItem(
+            'Settings',
+            'Configure Change Scribe',
+            vscode.TreeItemCollapsibleState.Expanded,
+            undefined,
+            'settings-gear',
+            true // Mark as section
+        );
+
+        // Help section
+        const helpSection = new ChangelogItem(
+            'Help & Feedback',
+            'Get help and provide feedback',
+            vscode.TreeItemCollapsibleState.Expanded,
+            undefined,
+            'question',
+            true // Mark as section
+        );
+
+        this._items = [changesSection, settingsSection, helpSection];
     }
 
     refresh(): void {
         this._onDidChangeTreeData.fire(undefined);
     }
 
-    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+    getTreeItem(element: ChangelogItem): vscode.TreeItem {
         return element;
     }
 
-    getChildren(): Thenable<vscode.TreeItem[]> {
-        const items: vscode.TreeItem[] = [];
-
-        if (this._headerItem) {
-            this._headerItem.contextValue = 'changeScribeHeader';
-            items.push(this._headerItem);
+    getChildren(element?: ChangelogItem): Thenable<ChangelogItem[]> {
+        if (!element) {
+            // Root level - return main sections
+            return Promise.resolve(this._items);
         }
 
-        items.push(
-            new ChangelogItem(
-                'Generate Changelog',
-                'Generate a new changelog',
-                vscode.TreeItemCollapsibleState.None,
-                {
-                    command: 'changeScribe.generateChangelog',
-                    title: 'Generate Changelog',
-                    tooltip: 'Generate a new changelog'
-                }
-            ),
-            new ChangelogItem(
-                'Change LLM Provider',
-                'Update the LLM provider settings',
-                vscode.TreeItemCollapsibleState.None,
-                {
-                    command: 'changescribe.updateLLMProvider',
-                    title: 'Change LLM Provider',
-                    tooltip: 'Update the LLM provider settings'
-                }
-            )
-        );
+        // Child items based on parent section
+        switch (element.label) {
+            case 'CHANGES':
+                return Promise.resolve([
+                    new ChangelogItem(
+                        'Generate Changelog',
+                        'Generate a new changelog',
+                        vscode.TreeItemCollapsibleState.None,
+                        {
+                            command: 'changeScribe.generateChangelog',
+                            title: 'Generate Changelog'
+                        },
+                        'note-add'
+                    )
+                ]);
 
-        return Promise.resolve(items);
+            case 'SETTINGS':
+                return Promise.resolve([
+                    new ChangelogItem(
+                        'Changelog Format',
+                        'Configure changelog format',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'workbench.action.openSettings', title: '', arguments: ['changescribe.format'] },
+                        'note'
+                    ),
+                    new ChangelogItem(
+                        'Change LLM Provider',
+                        'Update the LLM provider settings',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'changescribe.updateLLMProvider', title: '' },
+                        'server'
+                    ),
+                    new ChangelogItem(
+                        'Set Maximum Commits',
+                        'Set maximum commits to include',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'workbench.action.openSettings', title: '', arguments: ['changescribe.maxCommits'] },
+                        'number'
+                    ),
+                    new ChangelogItem(
+                        'Include Unstaged Changes',
+                        'Toggle inclusion of unstaged changes',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'workbench.action.openSettings', title: '', arguments: ['changescribe.includeUnstagedChanges'] },
+                        'git-commit'
+                    ),
+                    new ChangelogItem(
+                        '⚙ Open Full Settings',
+                        'Open all Change Scribe settings',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'workbench.action.openSettings', title: '', arguments: ['changescribe'] },
+                        'gear'
+                    )
+                ]);
+
+            case 'HELP & FEEDBACK':
+                return Promise.resolve([
+                    new ChangelogItem(
+                        'Read Extension Docs',
+                        'View documentation',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'vscode.open', title: '', arguments: ['https://github.com/kwesinavilot/changescribe#readme'] },
+                        'book'
+                    ),
+                    new ChangelogItem(
+                        'Report Issue',
+                        'Report a bug or suggest a feature',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'vscode.open', title: '', arguments: ['https://github.com/kwesinavilot/changescribe/issues'] },
+                        'bug'
+                    ),
+                    new ChangelogItem(
+                        'Contribute',
+                        'Contribute to Change Scribe',
+                        vscode.TreeItemCollapsibleState.None,
+                        { command: 'vscode.open', title: '', arguments: ['https://github.com/kwesinavilot/changescribe'] },
+                        'git-pull-request'
+                    )
+                ]);
+
+            default:
+                return Promise.resolve([]);
+        }
     }
 }
